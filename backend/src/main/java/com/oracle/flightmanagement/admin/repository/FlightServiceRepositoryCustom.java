@@ -9,4 +9,5 @@ public interface FlightServiceRepositoryCustom {
     List<FlightService> findByFlightId(Long flightId);
 
     List<FlightService> findByCategory(Long flightId, String category);
+
 }

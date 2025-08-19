@@ -26,7 +26,7 @@ public class FlightRepositoryImpl implements FlightRepositoryCustom {
 
     @Override
     public List<Flight> findFlightsByRoute(String route) {
-        String jpql = "SELECT f FROM Flight f WHERE f.route LIKE :route";
+        String jpql = "SELECT f FROM Flight f WHERE f.flightRoute LIKE :route";
         return entityManager.createQuery(jpql, Flight.class)
                 .setParameter("route", "%" + route + "%")
                 .getResultList();
@@ -34,10 +34,7 @@ public class FlightRepositoryImpl implements FlightRepositoryCustom {
 
     @Override
     public Optional<Flight> findFlightWithDetailsById(Long flightId) {
-        String jpql = "SELECT f FROM Flight f "
-                + "LEFT JOIN FETCH f.seatAssignments "
-                + // example of fetching related entities eagerly
-                "WHERE f.flightId = :flightId";
+        String jpql = "SELECT f FROM Flight f WHERE f.flightId = :flightId";
 
         List<Flight> result = entityManager.createQuery(jpql, Flight.class)
                 .setParameter("flightId", flightId)
