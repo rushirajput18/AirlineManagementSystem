@@ -53,12 +53,15 @@ const AdminDashboard: React.FC = () => {
     navigate('/login')
   }
 
-  const [flights, setFlights] = useState<FlightRow[]>([
+  const flights: FlightRow[] = useMemo(
+    () => [
       { id: 101, flight_number: 'AA101', flight_route: 'New York to Los Angeles', departure_time: '2024-01-15 09:00:00', arrival_time: '2024-01-15 12:30:00' },
       { id: 102, flight_number: 'AA102', flight_route: 'Chicago to Miami', departure_time: '2024-01-15 11:30:00', arrival_time: '2024-01-15 15:45:00' },
       { id: 103, flight_number: 'AA103', flight_route: 'Seattle to Denver', departure_time: '2024-01-15 14:15:00', arrival_time: '2024-01-15 17:30:00' },
       { id: 104, flight_number: 'AA104', flight_route: 'Boston to San Francisco', departure_time: '2024-01-15 16:45:00', arrival_time: '2024-01-15 20:15:00' },
-  ])
+    ],
+    [],
+  )
 
   const handlePassengerManagement = (flight: FlightRow) => {
     setSelectedFlight(flight)
@@ -83,17 +86,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleNewFlightSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const composedRoute = (newFlight.departure || newFlight.destination) ? `${newFlight.departure || ''} to ${newFlight.destination || ''}`.trim() : newFlight.flight_route
-    const route = composedRoute || ''
-    const nextId = flights.length ? Math.max(...flights.map((f) => f.id)) + 1 : 1
-    const toAdd: FlightRow = {
-      id: nextId,
-      flight_number: newFlight.flight_number,
-      flight_route: route,
-      departure_time: newFlight.departure_time,
-      arrival_time: newFlight.arrival_time,
-    }
-    setFlights((prev) => [...prev, toAdd])
+    console.log('Adding new flight:', newFlight)
     setShowNewFlightModal(false)
     setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
   }
