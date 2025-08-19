@@ -1,0 +1,13 @@
+package com.login_service.login;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class LoginApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
