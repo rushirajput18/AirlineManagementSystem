@@ -1,6 +1,6 @@
 package com.oracle.flightmanagement.enums;
 
 public enum UserRole {
-    ADMIN,
-    STAFF;
+    ROLE_ADMIN,
+    ROLE_STAFF;
 }
