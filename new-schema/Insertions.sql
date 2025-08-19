@@ -28,7 +28,7 @@ VALUES (1, 2, 'Extra Legroom', NULL, 500.00);
 INSERT INTO FlightServices (flight_id, category_id, service_name, service_type, price)
 VALUES (2, 3, 'Perfume', NULL, 1200.00);
 
-
+SELECT * FROM Passengers;
 
 -- Assuming passenger_id = 1, service_id = 1 (Vegetarian Meal)
 INSERT INTO PassengerMeals (passenger_id, service_id) VALUES (1, 1);
@@ -54,9 +54,10 @@ INSERT INTO SeatAssignments (flight_id, passenger_id, seat_no, checked_in) VALUE
 
 
 
-INSERT INTO Users (username, password_hash, role) VALUES ('admin', 'hashed_password_123', 'ADMIN');
-INSERT INTO Users (username, password_hash, role) VALUES ('staff1', 'hashed_password_456', 'STAFF');
-INSERT INTO Users (username, password_hash, role) VALUES ('staff1', 'hashed_password_456', 'STAFF');
+INSERT INTO Users (username, password_hash, role) VALUES ('admin', 'hashed_password_123', 'ROLE_ADMIN');
+INSERT INTO Users (username, password_hash, role) VALUES ('staff1', 'hashed_password_456', 'ROLE_STAFF');
+INSERT INTO Users (username, password_hash, role) VALUES ('staff2', 'hashed_password_456', 'ROLE_STAFF');
+
 
 
 select * from flight_services;
@@ -78,8 +79,8 @@ SET flight_route = 'DEL-MUM'
 WHERE flight_number = 'AI101';
 UPDATE Flights
 SET flight_route = 'BLR-MAA'
-WHERE flight_number = 'AI202'
+WHERE flight_number = 'AI202';
 
 
-SELECT flight_id, flight_route, flight_number, departure_time, arrival_time FROM Flights;
+SELECT flight_id, flight_route, flight_number, departure_time, arrival_time FROM Flights
 ;

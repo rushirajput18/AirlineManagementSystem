@@ -23,7 +23,7 @@ import com.oracle.flightmanagement.admin.service.FlightServiceService;
 import com.oracle.flightmanagement.admin.service.ServiceCategoryService;
 
 @RestController
-@RequestMapping("/api/flight-services")
+@RequestMapping("/api/admin/flight-services")
 public class FlightServiceController {
 
     @Autowired
