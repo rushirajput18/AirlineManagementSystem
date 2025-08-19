@@ -16,7 +16,6 @@ const AssignedFlightsTable: React.FC<AssignedFlightsTableProps> = ({ flights, on
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Flight Name</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in Progress</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
         </tr>
@@ -35,19 +34,6 @@ const AssignedFlightsTable: React.FC<AssignedFlightsTableProps> = ({ flights, on
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <div className="text-sm text-gray-900">{flight.departure}</div>
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                flight.status === 'In Flight'
-                  ? 'bg-blue-100 text-blue-800'
-                  : flight.status === 'Boarding'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : flight.status === 'Check-in Open'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                {flight.status}
-              </span>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <div className="flex items-center space-x-2">

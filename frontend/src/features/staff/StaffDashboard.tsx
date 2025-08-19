@@ -137,21 +137,7 @@ const StaffDashboard: React.FC = () => {
           <p className="text-gray-600">Welcome back! Here are your assigned flights and tasks.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {dashboardStats.map((stat, index) => (
-            <Card key={index} className="p-6 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-2xl`}>
-                  {stat.icon}
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
-                  <p className="text-gray-600 text-sm">{stat.title}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        {/* Stats removed as requested */}
 
         <Card className="p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
@@ -161,15 +147,7 @@ const StaffDashboard: React.FC = () => {
           <AssignedFlightsTable flights={assignedFlights} onCheckIn={handleCheckInService} onInFlight={handleInFlightService} />
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transform hover:-translate-y-1 transition-all">View Seat Map</button>
-            <button className="bg-gray-100 text-gray-700 p-4 rounded-lg font-semibold hover:bg-gray-200 transform hover:-translate-y-1 transition-all border-2 border-gray-200">Passenger List</button>
-            <button className="bg-gray-100 text-gray-700 p-4 rounded-lg font-semibold hover:bg-gray-200 transform hover:-translate-y-1 transition-all border-2 border-gray-200">Meal Preferences</button>
-            <button className="bg-gray-100 text-gray-700 p-4 rounded-lg font-semibold hover:bg-gray-200 transform hover:-translate-y-1 transition-all border-2 border-gray-200">Ancillary Services</button>
-          </div>
-        </Card>
+        {/* Quick Actions removed as requested */}
       </div>
 
       <Modal isOpen={showCheckInModal} title={`Check-in Service - ${selectedFlight?.name} (${selectedFlight?.id})`} onClose={() => setShowCheckInModal(false)} className="max-w-6xl w-full">
@@ -190,5 +168,3 @@ const StaffDashboard: React.FC = () => {
 }
 
 export default StaffDashboard
-
-
