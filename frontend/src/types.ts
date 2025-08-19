@@ -36,6 +36,31 @@ export interface PassengerRow {
   address?: string
 }
 
+export interface PassengerCheckInRow {
+  id: number
+  name: string
+  date_of_birth?: string
+  passport?: string
+  address?: string
+  seat_no?: string | null
+  checked_in: boolean
+  need_wheelchair: boolean
+  travelling_with_infant: boolean
+}
+
+export interface PassengerInFlightRow extends PassengerCheckInRow {
+  meal_preference: 'veg' | 'non-veg'
+  selected_ancillary_ids: number[]
+  selected_meal_id?: number
+  selected_shopping_item_ids: number[]
+}
+
+export interface SeatCell {
+  seat_no: string
+  occupied: boolean
+  passenger_id?: number
+}
+
 export interface NewPassenger {
   name: string
   date_of_birth: string
