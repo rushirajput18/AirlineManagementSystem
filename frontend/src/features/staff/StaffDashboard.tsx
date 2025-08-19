@@ -4,13 +4,26 @@ import NavBar from '../../components/common/NavBar'
 import Card from '../../components/common/Card'
 import Modal from '../../components/common/Modal'
 import AssignedFlightsTable from './components/AssignedFlightsTable'
-import { AssignedFlightRow, UserData } from '../../types'
+import CheckInPanel from './components/CheckInPanel'
+import InFlightPanel from './components/InFlightPanel'
+import { AssignedFlightRow, UserData, PassengerCheckInRow, SeatCell, PassengerInFlightRow, FlightServiceItem } from '../../types'
 
 const StaffDashboard: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [selectedFlight, setSelectedFlight] = useState<AssignedFlightRow | null>(null)
   const [showCheckInModal, setShowCheckInModal] = useState(false)
   const [showInFlightModal, setShowInFlightModal] = useState(false)
+  const [checkInPassengers, setCheckInPassengers] = useState<PassengerCheckInRow[]>([])
+  const [seatMap, setSeatMap] = useState<SeatCell[]>([])
+  const [inFlightPassengers, setInFlightPassengers] = useState<PassengerInFlightRow[]>([])
+  const [flightServices, setFlightServices] = useState<FlightServiceItem[]>([ 
+    { id: 1, category: 'ancillary', name: 'Extra Baggage', price: 30 } as any,
+    { id: 2, category: 'ancillary', name: 'Priority Boarding', price: 15 } as any,
+    { id: 3, category: 'meal', name: 'Veg Meal', meal_type: 'veg', price: 10 } as any,
+    { id: 4, category: 'meal', name: 'Chicken Meal', meal_type: 'non-veg', price: 12 } as any,
+    { id: 5, category: 'shopping', name: 'Headphones', price: 25 } as any,
+    { id: 6, category: 'shopping', name: 'Neck Pillow', price: 18 } as any,
+  ])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -53,12 +66,57 @@ const StaffDashboard: React.FC = () => {
 
   const handleCheckInService = (flight: AssignedFlightRow) => {
     setSelectedFlight(flight)
+    // Mock passengers
+    const mock: PassengerCheckInRow[] = [
+      { id: 1, name: 'Alice Brown', date_of_birth: '1991-04-20', passport: 'P1234', address: '221B Baker St', seat_no: null, checked_in: false, need_wheelchair: false, travelling_with_infant: false },
+      { id: 2, name: 'Bob Clark', date_of_birth: '', passport: '', address: '', seat_no: '12A', checked_in: true, need_wheelchair: true, travelling_with_infant: false },
+      { id: 3, name: 'Carol Davis', date_of_birth: '1988-12-05', passport: 'Z9876', address: '742 Evergreen', seat_no: null, checked_in: false, need_wheelchair: false, travelling_with_infant: true },
+    ]
+    setCheckInPassengers(mock)
+    // Mock seat map (36 seats)
+    const seats: SeatCell[] = Array.from({ length: 36 }).map((_, idx) => {
+      const row = Math.floor(idx / 6) + 1
+      const col = String.fromCharCode(65 + (idx % 6))
+      const seat_no = `${row}${col}`
+      const occupied = mock.some((p) => p.seat_no === seat_no)
+      const passenger = mock.find((p) => p.seat_no === seat_no)
+      return { seat_no, occupied, passenger_id: passenger?.id }
+    })
+    setSeatMap(seats)
     setShowCheckInModal(true)
   }
 
   const handleInFlightService = (flight: AssignedFlightRow) => {
     setSelectedFlight(flight)
+    // Mock passengers in-flight: derive from check-in list
+    const base: PassengerInFlightRow[] = checkInPassengers.map((p) => ({
+      ...p,
+      meal_preference: 'veg',
+      selected_ancillary_ids: [],
+      selected_meal_id: undefined,
+      selected_shopping_item_ids: [],
+    }))
+    setInFlightPassengers(base)
     setShowInFlightModal(true)
+  }
+
+  const handleAssignSeat = (passengerId: number, seatNo: string) => {
+    setCheckInPassengers((prev) => prev.map((p) => (p.id === passengerId ? { ...p, seat_no: seatNo } : p)))
+    setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: true, passenger_id: passengerId } : s)))
+  }
+
+  const handleCheckIn = (passengerId: number) => {
+    setCheckInPassengers((prev) => prev.map((p) => (p.id === passengerId ? { ...p, checked_in: true } : p)))
+  }
+
+  const handleCheckOut = (passengerId: number) => {
+    const seatNo = checkInPassengers.find((p) => p.id === passengerId)?.seat_no
+    setCheckInPassengers((prev) => prev.map((p) => (p.id === passengerId ? { ...p, checked_in: false, seat_no: null } : p)))
+    if (seatNo) setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: false, passenger_id: undefined } : s)))
+  }
+
+  const handleUpdatePassengerInFlight = (updated: PassengerInFlightRow) => {
+    setInFlightPassengers((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
   }
 
   if (!userData) {
@@ -114,69 +172,18 @@ const StaffDashboard: React.FC = () => {
         </Card>
       </div>
 
-      <Modal isOpen={showCheckInModal} title={`Check-in Service - ${selectedFlight?.name} (${selectedFlight?.id})`} onClose={() => setShowCheckInModal(false)} className="max-w-4xl w-full">
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-blue-900 mb-2">Passenger Management</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Get all passengers with seat and check-in status</li>
-                <li>• Filter by wheelchair need, infant status</li>
-                <li>• Check-in/Check-out passengers</li>
-                <li>• Assign available seats</li>
-              </ul>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-green-900 mb-2">Seat Management</h4>
-              <ul className="text-sm text-green-800 space-y-1">
-                <li>• Display seat map with availability</li>
-                <li>• View occupied and available seats</li>
-                <li>• Assign seats during check-in</li>
-                <li>• Release seats during check-out</li>
-              </ul>
-            </div>
-          </div>
-          <div className="flex justify-end space-x-4">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">View Passengers</button>
-            <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">View Seat Map</button>
-          </div>
-        </div>
+      <Modal isOpen={showCheckInModal} title={`Check-in Service - ${selectedFlight?.name} (${selectedFlight?.id})`} onClose={() => setShowCheckInModal(false)} className="max-w-6xl w-full">
+        <CheckInPanel
+          passengers={checkInPassengers}
+          seats={seatMap}
+          onAssignSeat={handleAssignSeat}
+          onCheckIn={handleCheckIn}
+          onCheckOut={handleCheckOut}
+        />
       </Modal>
 
-      <Modal isOpen={showInFlightModal} title={`In-Flight Service - ${selectedFlight?.name} (${selectedFlight?.id})`} onClose={() => setShowInFlightModal(false)} className="max-w-4xl w-full">
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-yellow-900 mb-2">Meal Services</h4>
-              <ul className="text-sm text-yellow-800 space-y-1">
-                <li>• Select meal preferences</li>
-                <li>• Update meal choices</li>
-                <li>• Special dietary requirements</li>
-              </ul>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-purple-900 mb-2">Ancillary Services</h4>
-              <ul className="text-sm text-purple-800 space-y-1">
-                <li>• Select ancillary services</li>
-                <li>• Update service selections</li>
-                <li>• Premium amenities</li>
-              </ul>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-orange-900 mb-2">Shopping</h4>
-              <ul className="text-sm text-orange-800 space-y-1">
-                <li>• In-flight shopping items</li>
-                <li>• Duty-free products</li>
-                <li>• Update shopping selections</li>
-              </ul>
-            </div>
-          </div>
-          <div className="flex justify-end space-x-4">
-            <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg">Meal Preferences</button>
-            <button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">Ancillary Services</button>
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">Shopping</button>
-          </div>
-        </div>
+      <Modal isOpen={showInFlightModal} title={`In-Flight Service - ${selectedFlight?.name} (${selectedFlight?.id})`} onClose={() => setShowInFlightModal(false)} className="max-w-6xl w-full">
+        <InFlightPanel passengers={inFlightPassengers} services={flightServices} onUpdatePassenger={handleUpdatePassengerInFlight} />
       </Modal>
     </div>
   )
