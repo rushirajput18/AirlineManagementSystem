@@ -3,9 +3,11 @@ import { PassengerRow } from '../../../types'
 
 interface PassengerListTableProps {
   passengers: PassengerRow[]
+  onEdit: (p: PassengerRow) => void
+  onRemove: (p: PassengerRow) => void
 }
 
-const PassengerListTable: React.FC<PassengerListTableProps> = ({ passengers }) => (
+const PassengerListTable: React.FC<PassengerListTableProps> = ({ passengers, onEdit, onRemove }) => (
   <div className="overflow-x-auto">
     <table className="min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
@@ -13,6 +15,7 @@ const PassengerListTable: React.FC<PassengerListTableProps> = ({ passengers }) =
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passport</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meal Preference</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Special Needs</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -29,6 +32,9 @@ const PassengerListTable: React.FC<PassengerListTableProps> = ({ passengers }) =
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <div className="text-sm text-gray-900">{passenger.passport}</div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="text-sm text-gray-900">{passenger.address || '-'}</div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -49,8 +55,8 @@ const PassengerListTable: React.FC<PassengerListTableProps> = ({ passengers }) =
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div className="flex space-x-2">
-                <button className="text-blue-600 hover:text-blue-900">Edit</button>
-                <button className="text-red-600 hover:text-red-900">Remove</button>
+                <button onClick={() => onEdit(passenger)} className="text-blue-600 hover:text-blue-900">Edit</button>
+                <button onClick={() => onRemove(passenger)} className="text-red-600 hover:text-red-900">Remove</button>
               </div>
             </td>
           </tr>

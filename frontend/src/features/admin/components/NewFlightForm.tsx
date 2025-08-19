@@ -15,8 +15,12 @@ const NewFlightForm: React.FC<NewFlightFormProps> = ({ form, onChange, onSubmit 
         <input type="text" name="flight_number" value={form.flight_number} onChange={onChange} required placeholder="e.g., AA101" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Flight Route</label>
-        <input type="text" name="flight_route" value={form.flight_route} onChange={onChange} required placeholder="e.g., New York to Los Angeles" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <label className="block text-sm font-medium text-gray-700 mb-1">Departure</label>
+        <input type="text" name="departure" value={form.departure || ''} onChange={onChange} required placeholder="e.g., New York" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+        <input type="text" name="destination" value={form.destination || ''} onChange={onChange} required placeholder="e.g., Los Angeles" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Departure Time</label>
