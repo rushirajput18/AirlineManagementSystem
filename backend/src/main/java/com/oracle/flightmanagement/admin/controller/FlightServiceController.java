@@ -23,7 +23,7 @@ import com.oracle.flightmanagement.admin.service.FlightServiceService;
 import com.oracle.flightmanagement.admin.service.ServiceCategoryService;
 
 @RestController
-@RequestMapping("/api/flight-services")
+@RequestMapping("/api/admin/flight-services")
 public class FlightServiceController {
 
     @Autowired
@@ -68,10 +68,15 @@ public class FlightServiceController {
         return service;
     }
 
+    
     // Get all services for a flight
     @GetMapping("/flight/{flightId}")
     public ResponseEntity<List<FlightServiceDTO>> getAllServicesByFlightId(@PathVariable Long flightId) {
         List<com.oracle.flightmanagement.admin.entity.FlightService> services = flightServiceService.getAllServicesByFlightId(flightId);
+
+        // 🔍 Add this line to check how many services were fetched
+        System.out.println("Services found: " + services.size());
+
         List<FlightServiceDTO> dtos = services.stream().map(this::toDTO).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }

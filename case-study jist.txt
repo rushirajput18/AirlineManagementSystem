@@ -1,0 +1,73 @@
+
+	Admin
+		- log in 
+		- a list of flights should be displayed
+			(flight id, flight route,..)
+			- select a flight
+		- a dashboard with following options must be displayed
+			- manage passengers (For a flight)
+			- manage flight services
+
+		manage passengers
+			details of passengers of that flight should be displayed
+			name, date of birth (optional), passport (optional), address (optional), meal preference (veg/non-veg), need wheelchair, travelling with infant
+				- add new passenger
+				- name, 
+				- date of birth (optional), 
+				- passport (optional), 
+				- address (optional), 
+				- meal preference (veg/non-veg), 
+				- need wheelchair, 
+				- travelling with infant
+
+			- update an existing passenger
+			- delete a passenger
+			- filter the passengers by missing requirements
+				- date of birth
+				- passport
+				- address
+
+
+		manage flight services
+			- flight services are of 3 types
+				- anciliary service (name, price)
+				- meals (meals name, type, price)
+				- in-flight shopping items (item name, itme price)
+		
+			- a list of flights should be displayed
+			- select a flight for services
+			- add new service
+				- display the categories
+				- select a category
+				-  enter details for the new service
+					- anciliary service (name, price)
+					- meals (meals name, type, price)
+					- in-flight shopping items (item name, itme price)
+			- update/delete an existing service
+
+	staff
+		- log in 
+		- a list of flights should be displayed
+			- select a flight
+			- a dashboard with following options must be displayed
+				- check in service
+				- in-flight
+
+			check-in service:
+
+				- the passengers list of that flight should be displayed [name, date of birth (optional), passport (optional), address (optional), seat-no (cheecked-in or not)]
+				- filter the passengers by 
+					- whether needs wheelchair or not
+					- whether having infant or not
+					- checked in or not
+
+			check-in/out passenger:
+				- display a map of seats
+				- select an available seat (if not checked-in) and check-in the passenger
+				- check out the passenger (if needed)			
+		
+			in-flight service
+				the passengers list of that flight should be displayed [name, date of birth (optional), passport (optional), address (optional), seat-no, meal-preference, selected anciliaries, selected meal, selected shopping items]
+				- passenger can change/select the anicliary service(s)
+				- passenger can change/select the meal(s) and meal-preference
+				- passenger can change/select the in-flight shopping item(s)

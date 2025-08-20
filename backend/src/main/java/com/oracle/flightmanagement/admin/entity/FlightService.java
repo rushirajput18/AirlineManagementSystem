@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "FlightServices")
+@Table(name = "FLIGHTSERVICES") // ✅ Not "flight_services"
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,11 +33,11 @@ public class FlightService {
     @Column(name = "service_id")
     private Long serviceId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "flight_id", nullable = false)
     private Flight flight;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     private ServiceCategory category;
 

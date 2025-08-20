@@ -1,18 +1,13 @@
-package com.loginservice.login.service;
+package com.oracle.flightmanagement.admin.service;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import com.loginservice.login.entity.UserInfo;
-import com.loginservice.login.repository.UserInfoRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -24,30 +19,18 @@ import io.jsonwebtoken.security.Keys;
 public class JwtService {
 
     private static final String SECRET = "5367566859703373367639792F423F452848284D6251655468576D5A71347437";
-    
-    private final UserInfoRepository repository;
-    
-    @Autowired
-    public JwtService(UserInfoRepository repository) {
-        this.repository = repository;
-    }
-    
+
     public String generateToken(String email) { // Use email as username
         Map<String, Object> claims = new HashMap<>();
-        Optional<UserInfo> userInfo = repository.findByEmail(email);
-        UserInfo user = userInfo.get();
-        String role = user.getRoles();
-        return createToken(claims, email, role);
+        return createToken(claims, email);
     }
 
-    private String createToken(Map<String, Object> claims, String email, String role) {
-        claims.put("role", role);
-        
+    private String createToken(Map<String, Object> claims, String email) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 5))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -22,7 +22,7 @@ import com.oracle.flightmanagement.admin.service.UserService;
 import com.oracle.flightmanagement.enums.UserRole;
 
 @RestController
-@RequestMapping("/api/admin/users")
+@RequestMapping("/admin/users")
 public class UserController {
 
     @Autowired
