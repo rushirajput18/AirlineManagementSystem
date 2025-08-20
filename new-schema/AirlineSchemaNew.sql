@@ -15,10 +15,8 @@ VALUES ('Beijing - Los Angeles', 'BJ500', TO_TIMESTAMP('2025-08-25 12:00:00', 'Y
 
 
 INSERT INTO ServiceCategories (category_name) VALUES ('Meals');
-INSERT INTO ServiceCategories (category_name) VALUES ('Extra Baggage');
+INSERT INTO ServiceCategories (category_name) VALUES ('Ancillary');
 INSERT INTO ServiceCategories (category_name) VALUES ('Shopping');
-INSERT INTO ServiceCategories (category_name) VALUES ('WiFi');
-INSERT INTO ServiceCategories (category_name) VALUES ('Entertainment');
 
 INSERT INTO FlightServices (flight_id, category_id, service_name, service_type, price)
 VALUES (1, 1, 'Vegetarian Meal', 'Food', 15.00);
@@ -28,13 +26,6 @@ VALUES (2, 2, 'Extra Baggage 20kg', 'Baggage', 50.00);
 
 INSERT INTO FlightServices (flight_id, category_id, service_name, service_type, price)
 VALUES (3, 3, 'Duty-Free Perfume', 'Product', 75.00);
-
-INSERT INTO FlightServices (flight_id, category_id, service_name, service_type, price)
-VALUES (4, 4, 'In-flight WiFi - 2 hours', 'Connectivity', 10.00);
-
-INSERT INTO FlightServices (flight_id, category_id, service_name, service_type, price)
-VALUES (5, 5, 'Movie Package', 'Entertainment', 8.00);
-
 
 INSERT INTO Passengers (flight_id, name, date_of_birth, passport, address, meal_preference, need_wheelchair, travelling_with_infant)
 VALUES (1, 'Alice Johnson', TO_DATE('1985-03-10', 'YYYY-MM-DD'), 'P12345678', '123 Main St, NY', 'Vegetarian', 0, 0);

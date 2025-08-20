@@ -6,6 +6,16 @@ import StaffDashboard from './features/staff/StaffDashboard'
 import NotFound from './components/NotFound'
 
 const App: React.FC = () => {
+
+  const getRedirect = () => {
+    const token = localStorage.getItem("token")
+    const role = localStorage.getItem("userRole")
+    if (!token || !role) return <Navigate to="/login" replace />
+    if (role === 'admin') return <Navigate to="/admin-dashboard" replace />
+    if (role === 'staff') return <Navigate to="/staff-dashboard" replace />
+    return <Navigate to="/404" replace />
+  }
+
   return (
     <div className="App">
       <Routes>
@@ -13,7 +23,7 @@ const App: React.FC = () => {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/staff-dashboard" element={<StaffDashboard />} />
         <Route path="/404" element={<NotFound />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={getRedirect()} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
     </div>
