@@ -23,7 +23,7 @@ import com.oracle.flightmanagement.admin.service.FlightServiceService;
 import com.oracle.flightmanagement.admin.service.ServiceCategoryService;
 
 @RestController
-@RequestMapping("/api/admin/flight-services")
+@RequestMapping("/admin/flight-services")
 public class FlightServiceController {
 
     @Autowired
@@ -68,7 +68,6 @@ public class FlightServiceController {
         return service;
     }
 
-    
     // Get all services for a flight
     @GetMapping("/flight/{flightId}")
     public ResponseEntity<List<FlightServiceDTO>> getAllServicesByFlightId(@PathVariable Long flightId) {
