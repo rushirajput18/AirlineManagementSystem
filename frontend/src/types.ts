@@ -6,6 +6,15 @@ export interface UserData {
   email: string
 }
 
+export interface Flight {
+  flightId: number;
+  flightNumber: string;
+  origin: string | null;
+  destination: string | null;
+  departureTime: string;
+  arrivalTime: string;
+}
+
 export interface FlightRow {
   id: number
   flight_number: string

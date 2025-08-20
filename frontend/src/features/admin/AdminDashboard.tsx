@@ -8,7 +8,7 @@ import NewFlightForm from './components/NewFlightForm'
 import NewPassengerForm from './components/NewPassengerForm'
 import PassengerListTable from './components/PassengerListTable'
 import FlightServicesModal from './components/FlightServicesModal'
-import { FlightRow, NewFlight, NewPassenger, PassengerRow, UserData, PassengerFilters, FlightServiceItem, NewServiceItem } from '../../types'
+import { FlightRow, NewFlight, NewPassenger, PassengerRow, UserData, PassengerFilters, FlightServiceItem, NewServiceItem, Flight } from '../../types'
 
 const AdminDashboard: React.FC = () => {
   const [userData, setUserData] = useState<string | null>(null)
@@ -54,12 +54,52 @@ const AdminDashboard: React.FC = () => {
   }
 
   const [flights, setFlights] = useState<FlightRow[]>([
-      { id: 101, flight_number: 'AA101', flight_route: 'New York to Los Angeles', departure_time: '2024-01-15 09:00:00', arrival_time: '2024-01-15 12:30:00' },
-      { id: 102, flight_number: 'AA102', flight_route: 'Chicago to Miami', departure_time: '2024-01-15 11:30:00', arrival_time: '2024-01-15 15:45:00' },
-      { id: 103, flight_number: 'AA103', flight_route: 'Seattle to Denver', departure_time: '2024-01-15 14:15:00', arrival_time: '2024-01-15 17:30:00' },
-      { id: 104, flight_number: 'AA104', flight_route: 'Boston to San Francisco', departure_time: '2024-01-15 16:45:00', arrival_time: '2024-01-15 20:15:00' },
+      // { id: 101, flight_number: 'AA101', flight_route: 'New York to Los Angeles', departure_time: '2024-01-15 09:00:00', arrival_time: '2024-01-15 12:30:00' },
+      // { id: 102, flight_number: 'AA102', flight_route: 'Chicago to Miami', departure_time: '2024-01-15 11:30:00', arrival_time: '2024-01-15 15:45:00' },
+      // { id: 103, flight_number: 'AA103', flight_route: 'Seattle to Denver', departure_time: '2024-01-15 14:15:00', arrival_time: '2024-01-15 17:30:00' },
+      // { id: 104, flight_number: 'AA104', flight_route: 'Boston to San Francisco', departure_time: '2024-01-15 16:45:00', arrival_time: '2024-01-15 20:15:00' },
   ])
 
+  async function fetchFlights(): Promise<FlightRow[]> {
+  const token = localStorage.getItem("token");
+  // console.log(token)
+
+  const response = await fetch('http://localhost:8084/admin/flights', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+
+  const data: Flight[] = await response.json();
+
+  const mappedFlights: FlightRow[] = data.map(flight => ({
+    id: flight.flightId,
+    flight_number: flight.flightNumber,
+    flight_route: `${flight.origin ?? 'Unknown'} to ${flight.destination ?? 'Unknown'}`,
+    departure_time: flight.departureTime.replace("T", " "),
+    arrival_time: flight.arrivalTime.replace("T", " ")
+  }));
+
+  return mappedFlights;
+}
+  
+
+  useEffect(() => {
+    fetchFlights()
+      .then(mappedFlights => {
+        setFlights(mappedFlights); // ✅ Replace console.log with setFlights
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }, []);
+  
   const handlePassengerManagement = (flight: FlightRow) => {
     setSelectedFlight(flight)
     setShowPassengerModal(true)
@@ -234,7 +274,7 @@ const AdminDashboard: React.FC = () => {
             <p className="text-gray-600">Manage passengers for this flight</p>
             <div className="flex space-x-2">
               <button onClick={() => setShowNewPassengerModal(true)} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add New Passenger</button>
-              <button onClick={() => selectedFlight && handleOpenServices(selectedFlight)} className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">Manage Services</button>
+              {/* <button onClick={() => selectedFlight && handleOpenServices(selectedFlight)} className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">Manage Services</button> */}
             </div>
           </div>
           <div className="flex space-x-4">
