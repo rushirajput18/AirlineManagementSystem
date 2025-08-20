@@ -28,6 +28,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/**").hasAnyAuthority("ROLE_ROLE_ADMIN") // restrict admin endpoints
+                .requestMatchers("/staff/**").hasAuthority("ROLE_ROLE_STAFF")
                 // .anyRequest().permitAll() // allow other endpoints
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
