@@ -3,6 +3,24 @@ import { useNavigate } from 'react-router-dom'
 
 type UserRole = 'admin' | 'staff'
 
+type JWTHeader = {
+  alg: string;
+  typ?: string;
+};
+
+type JWTPayload = {
+  sub?: string;
+  iat?: number;
+  exp?: number;
+  [key: string]: any;
+};
+
+type ParsedJWT = {
+  header: JWTHeader;
+  payload: JWTPayload;
+  signature: string;
+};
+
 interface Credentials {
   username: string
   password: string
@@ -10,13 +28,8 @@ interface Credentials {
 
 interface DemoUser {
   username: string
-  password: string
   role: UserRole
-  userData: {
-    id: number
-    name: string
-    email: string
-  }
+  userData: string
 }
 
 interface LoginSuccessResponse {
@@ -42,6 +55,23 @@ const Login: React.FC = () => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
   }
 
+  const parseJWT = (token: string): ParsedJWT => {
+    const [header, payload, signature] = token.split('.');
+
+    if (!header || !payload || !signature) {
+      throw new Error("Invalid JWT format");
+    }
+
+    const decodedHeader: JWTHeader = JSON.parse(atob(header));
+    const decodedPayload: JWTPayload = JSON.parse(atob(payload));
+
+    return {
+      header: decodedHeader,
+      payload: decodedPayload,
+      signature
+    };
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -52,7 +82,7 @@ const Login: React.FC = () => {
       if (response.success) {
         localStorage.setItem('token', response.token)
         localStorage.setItem('userRole', response.role)
-        localStorage.setItem('userData', JSON.stringify(response.userData))
+        localStorage.setItem('userData', response.userData)
         if (response.role === 'admin') navigate('/admin-dashboard')
         else if (response.role === 'staff') navigate('/staff-dashboard')
         else navigate('/404')
@@ -67,36 +97,36 @@ const Login: React.FC = () => {
   }
 
   const simulateLogin = async (credentials: Credentials): Promise<LoginResponse> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    const demoUsers: Record<UserRole, DemoUser> = {
-      admin: {
-        username: 'admin',
-        password: 'admin123',
-        role: 'admin',
-        userData: { id: 1, name: 'Admin User', email: 'admin@airline.com' },
-      },
-      staff: {
-        username: 'staff',
-        password: 'staff123',
-        role: 'staff',
-        userData: { id: 2, name: 'Staff User', email: 'staff@airline.com' },
-      },
+    try {
+      const response = await fetch('http://localhost:8082/auth/generateToken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        throw new Error('Token generation failed');
+      }
+
+      const token = await response.text();
+      const { payload } = parseJWT(token);
+      
+      if (payload.role === "ROLE_ADMIN") {
+          return { success: true, token, role: "admin", userData: payload.sub?.split("@")[0] ?? "" };
+        } else if (payload.role === "ROLE_STAFF") {
+          return { success: true, token, role: "staff", userData: payload.sub?.split("@")[0] ?? "" };
+        }
+
+      return { success: false };
+    } catch (error) {
+        console.error('Login simulation error:', error);
+        return { success: false };
     }
-
-    const user = Object.values(demoUsers).find(
-      (user) => user.username === credentials.username && user.password === credentials.password,
-    )
-
-    if (user) {
-      const mockToken = btoa(
-        JSON.stringify({ user: user.userData, role: user.role, exp: Date.now() + 24 * 60 * 60 * 1000 }),
-      )
-      return { success: true, token: mockToken, role: user.role, userData: user.userData }
-    }
-
-    return { success: false }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -154,11 +184,7 @@ const Login: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-6 p-3 bg-gray-50 rounded-md border border-gray-200">
-          <p className="text-xs text-gray-600 text-center">
-            <strong>Demo:</strong> admin/admin123 or staff/staff123
-          </p>
-        </div>
+        
       </div>
     </div>
   )
