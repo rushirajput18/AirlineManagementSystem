@@ -30,7 +30,7 @@ public class FlightServiceServiceImpl implements FlightServiceService {
     }
 
     @Override
-    public List<FlightService> getServicesByCategory(Long flightId, String category) {
+    public List<FlightService> getServicesByCategory(Long flightId, Long category) {
         return flightServiceRepositoryCustom.findByCategory(flightId, category);
     }
 

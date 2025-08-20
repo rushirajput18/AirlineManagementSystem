@@ -34,7 +34,7 @@ public class FlightRepositoryImpl implements FlightRepositoryCustom {
 
     @Override
     public Optional<Flight> findFlightWithDetailsById(Long flightId) {
-        String jpql = "SELECT f FROM Flight f WHERE f.flightId = :flightId";
+        String jpql = "SELECT f FROM Flight f "+ "LEFT JOIN FETCH f.seatAssignments " + "WHERE f.flightId= :flightId"
 
         List<Flight> result = entityManager.createQuery(jpql, Flight.class)
                 .setParameter("flightId", flightId)
