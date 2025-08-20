@@ -25,11 +25,12 @@ public class FlightServiceRepositoryImpl implements FlightServiceRepositoryCusto
     }
 
     @Override
-    public List<FlightService> findByCategory(Long flightId, String category) {
-        String jpql = "SELECT fs FROM FlightService fs WHERE fs.flight.flightId = :flightId AND fs.serviceCategory.name = :category";
+    public List<FlightService> findByCategory(Long flightId, Long category) {
+        String jpql = "SELECT fs FROM FlightService fs WHERE fs.flight.flightId = :flightId AND fs.category.categoryId = :category";
         TypedQuery<FlightService> query = entityManager.createQuery(jpql, FlightService.class);
         query.setParameter("flightId", flightId);
         query.setParameter("category", category);
         return query.getResultList();
     }
+
 }

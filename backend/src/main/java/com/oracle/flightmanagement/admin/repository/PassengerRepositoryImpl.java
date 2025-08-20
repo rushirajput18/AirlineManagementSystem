@@ -65,4 +65,5 @@ public class PassengerRepositoryImpl implements PassengerRepositoryCustom {
         }
         return query.getResultList();
     }
+
 }

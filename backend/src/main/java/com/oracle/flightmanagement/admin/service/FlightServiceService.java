@@ -9,7 +9,7 @@ public interface FlightServiceService {
 
     List<FlightService> getAllServicesByFlightId(Long flightId);
 
-    List<FlightService> getServicesByCategory(Long flightId, String category);
+    List<FlightService> getServicesByCategory(Long flightId, Long category);
 
     FlightService addServiceToFlight(FlightService flightService);
 

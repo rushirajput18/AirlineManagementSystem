@@ -79,7 +79,7 @@ public class FlightServiceController {
     // Get services by flight ID and category
     @GetMapping("/flight/{flightId}/category/{category}")
     public ResponseEntity<List<FlightServiceDTO>> getServicesByCategory(
-            @PathVariable Long flightId, @PathVariable String category) {
+            @PathVariable Long flightId, @PathVariable Long category) {
         List<com.oracle.flightmanagement.admin.entity.FlightService> services = flightServiceService.getServicesByCategory(flightId, category);
         List<FlightServiceDTO> dtos = services.stream().map(this::toDTO).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);

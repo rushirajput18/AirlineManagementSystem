@@ -26,7 +26,7 @@ public class FlightRepositoryImpl implements FlightRepositoryCustom {
 
     @Override
     public List<Flight> findFlightsByRoute(String route) {
-        String jpql = "SELECT f FROM Flight f WHERE f.route LIKE :route";
+        String jpql = "SELECT f FROM Flight f WHERE f.flightRoute  LIKE :route";
         return entityManager.createQuery(jpql, Flight.class)
                 .setParameter("route", "%" + route + "%")
                 .getResultList();
