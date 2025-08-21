@@ -37,7 +37,7 @@ const NavBar: React.FC<NavBarProps> = ({ title, subtitle, userName, onLogout, on
               <form onSubmit={handleSearch} className="flex items-center">
                 <input
                   type="text"
-                  placeholder="Search flights, passengers..."
+                  placeholder="Search flights"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="px-3 py-1 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"

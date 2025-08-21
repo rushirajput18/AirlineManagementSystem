@@ -360,8 +360,7 @@ const AdminDashboard: React.FC = () => {
       }
 
       const createdService = await response.json();
-      console.log("Done")
-
+      
       setServices((prev) => {
         const list = prev[flightId] || [];
         return {
