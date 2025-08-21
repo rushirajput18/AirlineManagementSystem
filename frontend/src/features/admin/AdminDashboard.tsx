@@ -35,6 +35,7 @@ const AdminDashboard: React.FC = () => {
   })
   const [newFlight, setNewFlight] = useState<NewFlight>({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
   const navigate = useNavigate()
+  const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL;
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -64,7 +65,7 @@ const AdminDashboard: React.FC = () => {
   const token = localStorage.getItem("token");
   // console.log(token)
 
-  const response = await fetch('http://localhost:8084/admin/flights', {
+  const response = await fetch(`${backendUrl}/admin/flights`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

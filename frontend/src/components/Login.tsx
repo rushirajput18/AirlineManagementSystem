@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+
 type UserRole = 'admin' | 'staff'
 
 type JWTHeader = {
@@ -50,7 +51,8 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const navigate = useNavigate()
-
+  const tokenUrl = import.meta.env.VITE_AUTH_SERVICE_URL;
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
   }
@@ -100,7 +102,7 @@ const Login: React.FC = () => {
     // await new Promise((resolve) => setTimeout(resolve, 1000))
 
     try {
-      const response = await fetch('http://localhost:8082/auth/generateToken', {
+      const response = await fetch(`${tokenUrl}/auth/generateToken`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
