@@ -6,7 +6,7 @@ import Modal from '../../components/common/Modal'
 import AssignedFlightsTable from './components/AssignedFlightsTable'
 import CheckInPanel from './components/CheckInPanel'
 import InFlightPanel from './components/InFlightPanel'
-import { AssignedFlightRow, UserData, PassengerCheckInRow, SeatCell, PassengerInFlightRow, FlightServiceItem } from '../../types'
+import { AssignedFlightRow, UserData, PassengerCheckInRow, SeatCell, PassengerInFlightRow, FlightServiceItem, BackendFlight } from '../../types'
 
 const StaffDashboard: React.FC = () => {
   const [userData, setUserData] = useState<string | null>(null)
@@ -25,7 +25,11 @@ const StaffDashboard: React.FC = () => {
     { id: 5, category: 'shopping', name: 'Headphones', price: 25 } as any,
     { id: 6, category: 'shopping', name: 'Neck Pillow', price: 18 } as any,
   ])
+  const [allFlights, setAllFlights] = useState<AssignedFlightRow[]>([]);
+
   const navigate = useNavigate()
+
+    const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL; 
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -59,49 +63,107 @@ const StaffDashboard: React.FC = () => {
     [],
   )
 
-  const allFlights: AssignedFlightRow[] = useMemo(
-    () => [
-      { id: 'FL001', name: 'New York Express', destination: 'New York', departure: '09:00 AM', status: 'Boarding', checkInStatus: 'In Progress', passengers: 45, checkedIn: 32 },
-      { id: 'FL002', name: 'Los Angeles Direct', destination: 'Los Angeles', departure: '11:30 AM', status: 'Check-in Open', checkInStatus: 'Open', passengers: 38, checkedIn: 15 },
-      { id: 'FL003', name: 'Chicago Connect', destination: 'Chicago', departure: '02:15 PM', status: 'In Flight', checkInStatus: 'Closed', passengers: 42, checkedIn: 42 },
-      { id: 'FL004', name: 'Miami Beach', destination: 'Miami', departure: '04:45 PM', status: 'Scheduled', checkInStatus: 'Not Started', passengers: 35, checkedIn: 0 },
-    ],
-    [],
-  )
+  useEffect(() => {
+    const fetchFlights = async () => {
+      const token = localStorage.getItem("token");
+
+      try {
+        const response = await fetch(`${backendUrl}/staff/flights`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch flights: ${response.status}`);
+        }
+
+        const data: BackendFlight[] = await response.json();
+
+        const mappedFlights: AssignedFlightRow[] = data.map((flight) => ({
+          id: flight.flightId,
+          name: flight.flightNumber,
+          destination: flight.destination,
+          departure: new Date(flight.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          status: "Scheduled", // default or derived from other data
+          checkInStatus: "Not Started", // default or derived
+          passengers: 0, // placeholder unless provided
+          checkedIn: 0, // placeholder unless provided
+        }));
+
+        setAllFlights(mappedFlights);
+      } catch (error) {
+        console.error("Error fetching flights:", error);
+      }
+    };
+
+    fetchFlights();
+  }, []);
 
   const assignedFlights = useMemo(() => {
-    if (!searchQuery.trim()) return allFlights
-    
-    const query = searchQuery.toLowerCase()
-    return allFlights.filter(flight => 
-      flight.id.toLowerCase().includes(query) ||
-      flight.name.toLowerCase().includes(query) ||
-      flight.destination.toLowerCase().includes(query) ||
-      flight.status.toLowerCase().includes(query)
-    )
-  }, [allFlights, searchQuery])
+    if (!searchQuery.trim()) return allFlights;
 
-  const handleCheckInService = (flight: AssignedFlightRow) => {
-    setSelectedFlight(flight)
-    // Mock passengers
-    const mock: PassengerCheckInRow[] = [
-      { id: 1, name: 'Alice Brown', date_of_birth: '1991-04-20', passport: 'P1234', address: '221B Baker St', seat_no: null, checked_in: false, need_wheelchair: false, travelling_with_infant: false },
-      { id: 2, name: 'Bob Clark', date_of_birth: '', passport: '', address: '', seat_no: '12A', checked_in: true, need_wheelchair: true, travelling_with_infant: false },
-      { id: 3, name: 'Carol Davis', date_of_birth: '1988-12-05', passport: 'Z9876', address: '742 Evergreen', seat_no: null, checked_in: false, need_wheelchair: false, travelling_with_infant: true },
-    ]
-    setCheckInPassengers(mock)
-    // Mock seat map (36 seats)
-    const seats: SeatCell[] = Array.from({ length: 36 }).map((_, idx) => {
-      const row = Math.floor(idx / 6) + 1
-      const col = String.fromCharCode(65 + (idx % 6))
-      const seat_no = `${row}${col}`
-      const occupied = mock.some((p) => p.seat_no === seat_no)
-      const passenger = mock.find((p) => p.seat_no === seat_no)
-      return { seat_no, occupied, passenger_id: passenger?.id }
-    })
-    setSeatMap(seats)
-    setShowCheckInModal(true)
-  }
+    const query = searchQuery.toLowerCase();
+    return allFlights.filter(flight =>
+      // flight.id.includes(query) ||
+      flight.name.toLowerCase().includes(query) ||
+      flight.destination?.toLowerCase().includes(query) ||
+      flight.status.toLowerCase().includes(query)
+    );
+  }, [allFlights, searchQuery]);
+
+  const fetchPassengers = async (flightId: number): Promise<PassengerCheckInRow[]> => {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${backendUrl}/staff/flights/${flightId}/passengers`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch passengers: ${response.status}`);
+    }
+
+    return await response.json();
+  };
+
+  const generateSeatMap = (passengers: PassengerCheckInRow[], totalSeats: number): SeatCell[] => {
+    return Array.from({ length: totalSeats }).map((_, idx) => {
+      const row = Math.floor(idx / 6) + 1;
+      const col = String.fromCharCode(65 + (idx % 6));
+      const seat_no = `${row}${col}`;
+      const passenger = passengers.find(p => p.seatNumber === seat_no);
+      return {
+        seat_no,
+        occupied: !!passenger,
+        passenger_id: passenger?.passengerId,
+      };
+    });
+  };
+
+
+  const handleCheckInService = async (flight: AssignedFlightRow) => {
+    setSelectedFlight(flight);
+    
+    try {
+      const passengers = await fetchPassengers(flight.id);
+      setCheckInPassengers(passengers);
+
+      const seatMap = generateSeatMap(passengers, 36);
+      setSeatMap(seatMap);
+
+      setShowCheckInModal(true);
+    } catch (error) {
+      console.error("Error during check-in service:", error);
+      // Optionally show error UI
+    }
+  };
+
 
   const handleInFlightService = (flight: AssignedFlightRow) => {
     setSelectedFlight(flight)
@@ -118,22 +180,22 @@ const StaffDashboard: React.FC = () => {
   }
 
   const handleAssignSeat = (passengerId: number, seatNo: string) => {
-    setCheckInPassengers((prev) => prev.map((p) => (p.id === passengerId ? { ...p, seat_no: seatNo } : p)))
+    setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, seat_no: seatNo } : p)))
     setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: true, passenger_id: passengerId } : s)))
   }
 
   const handleCheckIn = (passengerId: number) => {
-    setCheckInPassengers((prev) => prev.map((p) => (p.id === passengerId ? { ...p, checked_in: true } : p)))
+    setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, checked_in: true } : p)))
   }
 
   const handleCheckOut = (passengerId: number) => {
-    const seatNo = checkInPassengers.find((p) => p.id === passengerId)?.seat_no
-    setCheckInPassengers((prev) => prev.map((p) => (p.id === passengerId ? { ...p, checked_in: false, seat_no: null } : p)))
+    const seatNo = checkInPassengers.find((p) => p.passengerId === passengerId)?.seatNumber
+    setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, checked_in: false, seat_no: null } : p)))
     if (seatNo) setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: false, passenger_id: undefined } : s)))
   }
 
   const handleUpdatePassengerInFlight = (updated: PassengerInFlightRow) => {
-    setInFlightPassengers((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+    setInFlightPassengers((prev) => prev.map((p) => (p.passengerId === updated.passengerId ? updated : p)))
   }
 
   // Calculate dynamic progress for each flight

@@ -21,10 +21,10 @@ const FlightServicesModal: React.FC<FlightServicesModalProps> = ({ isOpen, fligh
   const title = useMemo(() => `Manage Services - ${flight?.flight_number ?? ''} (${flight?.id ?? ''})`, [flight])
 
   const isValidAdd = useMemo(() => {
-    const hasCategory = category === 'ancillary' || category === 'meal' || category === 'shopping'
+    const hasCategory = category === 'ancillary' || category === 'meals' || category === 'shopping'
     const hasName = name.trim().length > 0
     const hasPrice = Number.isFinite(price) && price > 0
-    const hasMealType = category !== 'meal' || (mealType === 'veg' || mealType === 'non-veg')
+    const hasMealType = category !== 'meals' || (mealType === 'veg' || mealType === 'non-veg')
     return hasCategory && hasName && hasPrice && hasMealType
   }, [category, name, price, mealType])
 
@@ -37,8 +37,8 @@ const FlightServicesModal: React.FC<FlightServicesModalProps> = ({ isOpen, fligh
     let item: NewServiceItem
     if (category === 'ancillary') {
       item = { category: 'ancillary', name, price } as NewServiceItem
-    } else if (category === 'meal') {
-      item = { category: 'meal', name, meal_type: mealType, price } as NewServiceItem
+    } else if (category === 'meals') {
+      item = { category: 'meals', name, meal_type: mealType, price } as NewServiceItem
     } else {
       item = { category: 'shopping', name, price } as NewServiceItem
     }
@@ -67,7 +67,7 @@ const FlightServicesModal: React.FC<FlightServicesModalProps> = ({ isOpen, fligh
             <select required value={category} onChange={(e) => setCategory(e.target.value as ServiceCategory | '')} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="" disabled>Select category</option>
               <option value="ancillary">Ancillary</option>
-              <option value="meal">Meal</option>
+              <option value="meals">Meal</option>
               <option value="shopping">Shopping</option>
             </select>
           </div>
@@ -75,7 +75,7 @@ const FlightServicesModal: React.FC<FlightServicesModalProps> = ({ isOpen, fligh
             <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-          {category === 'meal' && (
+          {category === 'meals' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Meal Type</label>
               <select required value={mealType} onChange={(e) => setMealType(e.target.value as 'veg' | 'non-veg')} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">

@@ -6,6 +6,16 @@ export interface UserData {
   email: string
 }
 
+export type BackendFlight = {
+  flightId: number;
+  flightNumber: string;
+  origin: string;
+  destination: string;
+  departureTime: string;
+  arrivalTime: string;
+};
+
+
 export type BackendService = {
   serviceId: number;
   flightId: number;
@@ -34,7 +44,7 @@ export interface FlightRow {
 }
 
 export interface AssignedFlightRow {
-  id: string
+  id: number
   name: string
   destination: string
   departure: string
@@ -56,15 +66,26 @@ export interface PassengerRow {
 }
 
 export interface PassengerCheckInRow {
-  id: number
-  name: string
-  date_of_birth?: string
-  passport?: string
-  address?: string
-  seat_no?: string | null
-  checked_in: boolean
-  need_wheelchair: boolean
-  travelling_with_infant: boolean
+  // id: number
+  // name: string
+  // date_of_birth?: string
+  // passport?: string
+  // address?: string
+  // seat_no?: string | null
+  // checked_in: boolean
+  // need_wheelchair: boolean
+  // travelling_with_infant: boolean
+
+  passengerId: number
+  checkedIn: boolean
+  seatNumber: string
+  seatClass: string
+//   {
+//     "passengerId": 17,
+//     "seatNumber": null,
+//     "seatClass": "Economy",
+//     "isCheckedIn": false
+// }
 }
 
 export interface PassengerInFlightRow extends PassengerCheckInRow {
@@ -100,7 +121,7 @@ export interface NewFlight {
   arrival_time: string
 }
 
-export type ServiceCategory = 'ancillary' | 'meal' | 'shopping'
+export type ServiceCategory = 'ancillary' | 'meals' | 'shopping'
 
 export interface BaseServiceItem {
   id: number
@@ -114,7 +135,7 @@ export interface AncillaryServiceItem extends BaseServiceItem {
 }
 
 export interface MealServiceItem extends BaseServiceItem {
-  category: 'meal'
+  category: 'meals'
   name: string
   meal_type: 'veg' | 'non-veg'
   price: number

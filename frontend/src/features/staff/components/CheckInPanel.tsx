@@ -19,21 +19,26 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
   useEffect(() => {
     const initialSeats: Record<number, string> = {}
     passengers.forEach(p => {
-      if (p.seat_no) {
-        initialSeats[p.id] = p.seat_no
+      if (p.seatNumber) {
+        initialSeats[p.passengerId] = p.seatNumber
       }
     })
     setSelectedSeats(initialSeats)
   }, [passengers])
 
-  const filteredPassengers = useMemo(() => {
-    return passengers.filter((p) => {
-      if (filterWheelchair !== null && p.need_wheelchair !== filterWheelchair) return false
-      if (filterInfant !== null && p.travelling_with_infant !== filterInfant) return false
-      if (filterCheckedIn !== null && p.checked_in !== filterCheckedIn) return false
-      return true
-    })
-  }, [passengers, filterWheelchair, filterInfant, filterCheckedIn])
+  // const filteredPassengers = useMemo(() => {
+  //   console.log(passengers)
+  //   return passengers.filter((p) => {
+  //     if (filterWheelchair !== null && p.need_wheelchair !== filterWheelchair) return false
+  //     if (filterInfant !== null && p.travelling_with_infant !== filterInfant) return false
+  //     if (filterCheckedIn !== null && p.checked_in !== filterCheckedIn) return false
+  //     return true
+  //   })
+  // }, [passengers, filterWheelchair, filterInfant, filterCheckedIn])
+
+  const filteredPassengers = passengers;
+
+  // console.log(filteredPassengers)
 
   const availableSeats = useMemo(() => seats.filter((s) => !s.occupied), [seats])
 
@@ -51,6 +56,8 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
     setSelectedSeats(prev => ({ ...prev, [passengerId]: seatNo }))
     onAssignSeat(passengerId, seatNo)
   }
+
+  console.log(passengers)
 
   return (
     <div className="space-y-6">
@@ -78,10 +85,11 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">DOB</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Passport</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Address</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Id</th>
+                {/* <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">DOB</th> */}
+                {/* <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Passport</th> */}
+                {/* <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Address</th> */}
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">class</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Seat</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Checked-In</th>
                 <th className="px-4 py-2"/>
@@ -89,31 +97,32 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPassengers.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 text-sm">{p.name}</td>
-                  <td className="px-4 py-2 text-sm">{p.date_of_birth || '-'}</td>
-                  <td className="px-4 py-2 text-sm">{p.passport || '-'}</td>
-                  <td className="px-4 py-2 text-sm">{p.address || '-'}</td>
-                  <td className="px-4 py-2 text-sm">{p.seat_no || '-'}</td>
-                  <td className="px-4 py-2 text-sm">{p.checked_in ? 'Yes' : 'No'}</td>
+                <tr key={p.passengerId} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-sm">{p.passengerId}</td>
+                  {/* <td className="px-4 py-2 text-sm">{p.date_of_birth || '-'}</td> */}
+                  {/* <td className="px-4 py-2 text-sm">{p.passport || '-'}</td> */}
+                  {/* <td className="px-4 py-2 text-sm">{p.address || '-'}</td> */}
+                  <td className="px-4 py-2 text-sm">{p.seatClass || '-'}</td>
+                  <td className="px-4 py-2 text-sm">{p.seatNumber || '-'}</td>
+                  <td className="px-4 py-2 text-sm">{p.checkedIn ? 'Yes' : 'No'}</td>
                   <td className="px-4 py-2 text-sm">
                     <div className="flex items-center space-x-2">
-                      {!p.checked_in ? (
+                      {!p.checkedIn ? (
                         <select 
                           className="border rounded px-2 py-1" 
-                          value={selectedSeats[p.id] || ''}
-                          onChange={(e) => e.target.value && handleSeatSelection(p.id, e.target.value)}
+                          value={selectedSeats[p.passengerId] || ''}
+                          onChange={(e) => e.target.value && handleSeatSelection(p.passengerId, e.target.value)}
                         >
                           <option value="" disabled>Select Seat</option>
                           {availableSeats.map((s) => (
-                            <option key={`${p.id}-${s.seat_no}`} value={s.seat_no}>{s.seat_no}</option>
+                            <option key={`${p.passengerId}-${s.seat_no}`} value={s.seat_no}>{s.seat_no}</option>
                           ))}
                         </select>
                       ) : (
-                        <button onClick={() => onCheckOut(p.id)} className="text-red-600 hover:text-red-800">Check-out</button>
+                        <button onClick={() => onCheckOut(p.passengerId)} className="text-red-600 hover:text-red-800">Check-out</button>
                       )}
-                      {!p.checked_in && (
-                        <button onClick={() => onCheckIn(p.id)} className="text-blue-600 hover:text-blue-800">Check-in</button>
+                      {!p.checkedIn && (
+                        <button onClick={() => onCheckIn(p.passengerId)} className="text-blue-600 hover:text-blue-800">Check-in</button>
                       )}
                     </div>
                   </td>
