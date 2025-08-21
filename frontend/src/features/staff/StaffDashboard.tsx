@@ -16,6 +16,7 @@ const StaffDashboard: React.FC = () => {
   const [checkInPassengers, setCheckInPassengers] = useState<PassengerCheckInRow[]>([])
   const [seatMap, setSeatMap] = useState<SeatCell[]>([])
   const [inFlightPassengers, setInFlightPassengers] = useState<PassengerInFlightRow[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
   const [flightServices, setFlightServices] = useState<FlightServiceItem[]>([ 
     { id: 1, category: 'ancillary', name: 'Extra Baggage', price: 30 } as any,
     { id: 2, category: 'ancillary', name: 'Priority Boarding', price: 15 } as any,
@@ -44,6 +45,10 @@ const StaffDashboard: React.FC = () => {
     navigate('/login')
   }
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+  }
+
   const dashboardStats = useMemo(
     () => [
       { title: 'Assigned Flights', value: '8', icon: '✈️', color: 'from-blue-500 to-blue-600' },
@@ -54,7 +59,7 @@ const StaffDashboard: React.FC = () => {
     [],
   )
 
-  const assignedFlights: AssignedFlightRow[] = useMemo(
+  const allFlights: AssignedFlightRow[] = useMemo(
     () => [
       { id: 'FL001', name: 'New York Express', destination: 'New York', departure: '09:00 AM', status: 'Boarding', checkInStatus: 'In Progress', passengers: 45, checkedIn: 32 },
       { id: 'FL002', name: 'Los Angeles Direct', destination: 'Los Angeles', departure: '11:30 AM', status: 'Check-in Open', checkInStatus: 'Open', passengers: 38, checkedIn: 15 },
@@ -63,6 +68,18 @@ const StaffDashboard: React.FC = () => {
     ],
     [],
   )
+
+  const assignedFlights = useMemo(() => {
+    if (!searchQuery.trim()) return allFlights
+    
+    const query = searchQuery.toLowerCase()
+    return allFlights.filter(flight => 
+      flight.id.toLowerCase().includes(query) ||
+      flight.name.toLowerCase().includes(query) ||
+      flight.destination.toLowerCase().includes(query) ||
+      flight.status.toLowerCase().includes(query)
+    )
+  }, [allFlights, searchQuery])
 
   const handleCheckInService = (flight: AssignedFlightRow) => {
     setSelectedFlight(flight)
@@ -119,6 +136,12 @@ const StaffDashboard: React.FC = () => {
     setInFlightPassengers((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
   }
 
+  // Calculate dynamic progress for each flight
+  const getFlightProgress = (flight: AssignedFlightRow) => {
+    if (flight.passengers === 0) return 0
+    return Math.round((flight.checkedIn / flight.passengers) * 100)
+  }
+
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -129,15 +152,19 @@ const StaffDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar title="Airline Management System" userName={userData} onLogout={handleLogout} />
+      <NavBar 
+        title="Airline Management System" 
+        userName={userData} 
+        onLogout={handleLogout}
+        onSearch={handleSearch}
+        showSearch={true}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Staff Dashboard</h1>
           <p className="text-gray-600">Welcome back! Here are your assigned flights and tasks.</p>
         </div>
-
-        {/* Stats removed as requested */}
 
         <Card className="p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
@@ -146,8 +173,6 @@ const StaffDashboard: React.FC = () => {
           </div>
           <AssignedFlightsTable flights={assignedFlights} onCheckIn={handleCheckInService} onInFlight={handleInFlightService} />
         </Card>
-
-        {/* Quick Actions removed as requested */}
       </div>
 
       <Modal isOpen={showCheckInModal} title={`Check-in Service - ${selectedFlight?.name} (${selectedFlight?.id})`} onClose={() => setShowCheckInModal(false)} className="max-w-6xl w-full">

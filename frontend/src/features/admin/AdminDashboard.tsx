@@ -23,6 +23,7 @@ const AdminDashboard: React.FC = () => {
   const [showServiceModal, setShowServiceModal] = useState(false)
   const [serviceFlight, setServiceFlight] = useState<FlightRow | null>(null)
   const [services, setServices] = useState<Record<number, FlightServiceItem[]>>({})
+  const [searchQuery, setSearchQuery] = useState('')
   const [newPassenger, setNewPassenger] = useState<NewPassenger>({
     name: '',
     date_of_birth: '',
@@ -53,12 +54,11 @@ const AdminDashboard: React.FC = () => {
     navigate('/login')
   }
 
-  const [flights, setFlights] = useState<FlightRow[]>([
-      // { id: 101, flight_number: 'AA101', flight_route: 'New York to Los Angeles', departure_time: '2024-01-15 09:00:00', arrival_time: '2024-01-15 12:30:00' },
-      // { id: 102, flight_number: 'AA102', flight_route: 'Chicago to Miami', departure_time: '2024-01-15 11:30:00', arrival_time: '2024-01-15 15:45:00' },
-      // { id: 103, flight_number: 'AA103', flight_route: 'Seattle to Denver', departure_time: '2024-01-15 14:15:00', arrival_time: '2024-01-15 17:30:00' },
-      // { id: 104, flight_number: 'AA104', flight_route: 'Boston to San Francisco', departure_time: '2024-01-15 16:45:00', arrival_time: '2024-01-15 20:15:00' },
-  ])
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+  }
+
+  const [allFlights, setAllFlights] = useState<FlightRow[]>([])
 
   async function fetchFlights(): Promise<FlightRow[]> {
   const token = localStorage.getItem("token");
@@ -93,13 +93,24 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     fetchFlights()
       .then(mappedFlights => {
-        setFlights(mappedFlights); // ✅ Replace console.log with setFlights
+        setAllFlights(mappedFlights); // ✅ Replace console.log with setAllFlights
       })
       .catch(error => {
         console.error('Error:', error);
       });
   }, []);
   
+  const flights = useMemo(() => {
+    if (!searchQuery.trim()) return allFlights
+    
+    const query = searchQuery.toLowerCase()
+    return allFlights.filter(flight => 
+      flight.flight_number.toLowerCase().includes(query) ||
+      flight.flight_route.toLowerCase().includes(query) ||
+      flight.id.toString().includes(query)
+    )
+  }, [allFlights, searchQuery])
+
   const handlePassengerManagement = (flight: FlightRow) => {
     setSelectedFlight(flight)
     setShowPassengerModal(true)
@@ -133,7 +144,7 @@ const AdminDashboard: React.FC = () => {
       departure_time: newFlight.departure_time,
       arrival_time: newFlight.arrival_time,
     }
-    setFlights((prev) => [...prev, toAdd])
+    setAllFlights((prev) => [...prev, toAdd])
     setShowNewFlightModal(false)
     setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
   }
@@ -235,7 +246,13 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar title="Airline Management System" userName={userData} onLogout={handleLogout} />
+      <NavBar 
+        title="Airline Management System" 
+        userName={userData} 
+        onLogout={handleLogout}
+        onSearch={handleSearch}
+        showSearch={true}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
@@ -250,7 +267,25 @@ const AdminDashboard: React.FC = () => {
             </button>
           </div>
           <FlightTable flights={flights} onManagePassengers={handlePassengerManagement} onManageServices={handleOpenServices} formatDateTime={formatDateTime} />
-          <div className="mt-4 flex items-center space-x-2">
+        </Card>
+      </div>
+
+      <Modal isOpen={showPassengerModal} title={`Passenger Management - ${selectedFlight?.flight_number} (${selectedFlight?.id})`} onClose={() => setShowPassengerModal(false)} className="max-w-5xl w-full">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-gray-600">Manage passengers for this flight</p>
+            <div className="flex space-x-2">
+              <button onClick={() => setShowNewPassengerModal(true)} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add New Passenger</button>
+            </div>
+          </div>
+          <div className="flex space-x-4">
+            <button onClick={handleViewPassengers} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+              View All Passengers
+            </button>
+          </div>
+          
+          {/* Passenger filters moved inside Manage Passengers modal */}
+          <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded">
             <span className="text-sm text-gray-600">Passenger filters:</span>
             <label className="text-sm text-gray-700 flex items-center space-x-1">
               <input type="checkbox" checked={passengerFilters.missingDOB} onChange={(e) => setPassengerFilters((f) => ({ ...f, missingDOB: e.target.checked }))} />
@@ -265,23 +300,7 @@ const AdminDashboard: React.FC = () => {
               <span>Missing Address</span>
             </label>
           </div>
-        </Card>
-      </div>
-
-      <Modal isOpen={showPassengerModal} title={`Passenger Management - ${selectedFlight?.flight_number} (${selectedFlight?.id})`} onClose={() => setShowPassengerModal(false)} className="max-w-5xl w-full">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <p className="text-gray-600">Manage passengers for this flight</p>
-            <div className="flex space-x-2">
-              <button onClick={() => setShowNewPassengerModal(true)} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add New Passenger</button>
-              {/* <button onClick={() => selectedFlight && handleOpenServices(selectedFlight)} className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">Manage Services</button> */}
-            </div>
-          </div>
-          <div className="flex space-x-4">
-            <button onClick={handleViewPassengers} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
-              View All Passengers
-            </button>
-          </div>
+          
           <PassengerListTable passengers={filteredPassengers} onEdit={handlePassengerEditClick} onRemove={handlePassengerRemove} />
         </div>
       </Modal>
@@ -293,8 +312,6 @@ const AdminDashboard: React.FC = () => {
       <Modal isOpen={showNewFlightModal} title="Add New Flight" onClose={() => setShowNewFlightModal(false)} className="max-w-2xl w-full">
         <NewFlightForm form={newFlight} onChange={handleFlightChange} onSubmit={handleNewFlightSubmit} />
       </Modal>
-
-      {/* Inline passenger list only; no popup for "View All Passengers" as per request */}
 
       <Modal isOpen={showPassengerEditModal} title={`Edit Passenger`} onClose={() => setShowPassengerEditModal(false)} className="max-w-xl w-full">
         {passengerToEdit && (

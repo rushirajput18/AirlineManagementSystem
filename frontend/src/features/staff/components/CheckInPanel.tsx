@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { PassengerCheckInRow, SeatCell } from '../../../types'
 
 interface CheckInPanelProps {
@@ -13,6 +13,18 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
   const [filterWheelchair, setFilterWheelchair] = useState<boolean | null>(null)
   const [filterInfant, setFilterInfant] = useState<boolean | null>(null)
   const [filterCheckedIn, setFilterCheckedIn] = useState<boolean | null>(null)
+  const [selectedSeats, setSelectedSeats] = useState<Record<number, string>>({})
+
+  // Initialize selected seats from passengers who already have seats assigned
+  useEffect(() => {
+    const initialSeats: Record<number, string> = {}
+    passengers.forEach(p => {
+      if (p.seat_no) {
+        initialSeats[p.id] = p.seat_no
+      }
+    })
+    setSelectedSeats(initialSeats)
+  }, [passengers])
 
   const filteredPassengers = useMemo(() => {
     return passengers.filter((p) => {
@@ -34,6 +46,11 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
     }
     return rows
   }, [seats])
+
+  const handleSeatSelection = (passengerId: number, seatNo: string) => {
+    setSelectedSeats(prev => ({ ...prev, [passengerId]: seatNo }))
+    onAssignSeat(passengerId, seatNo)
+  }
 
   return (
     <div className="space-y-6">
@@ -82,10 +99,14 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
                   <td className="px-4 py-2 text-sm">
                     <div className="flex items-center space-x-2">
                       {!p.checked_in ? (
-                        <select className="border rounded px-2 py-1" onChange={(e) => e.target.value && onAssignSeat(p.id, e.target.value)} defaultValue="">
+                        <select 
+                          className="border rounded px-2 py-1" 
+                          value={selectedSeats[p.id] || ''}
+                          onChange={(e) => e.target.value && handleSeatSelection(p.id, e.target.value)}
+                        >
                           <option value="" disabled>Select Seat</option>
                           {availableSeats.map((s) => (
-                            <option key={s.seat_no} value={s.seat_no}>{s.seat_no}</option>
+                            <option key={`${p.id}-${s.seat_no}`} value={s.seat_no}>{s.seat_no}</option>
                           ))}
                         </select>
                       ) : (
