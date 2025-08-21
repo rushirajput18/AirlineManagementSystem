@@ -6,6 +6,16 @@ export interface UserData {
   email: string
 }
 
+export type BackendService = {
+  serviceId: number;
+  flightId: number;
+  category: string;
+  name: string;
+  type?: string | null;
+  price: number;
+};
+
+
 export interface Flight {
   flightId: number;
   flightNumber: string;

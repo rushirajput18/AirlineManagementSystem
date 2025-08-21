@@ -295,42 +295,121 @@ const AdminDashboard: React.FC = () => {
   };
 
 
-  const handleOpenServices = (flight: FlightRow) => {
-    setServiceFlight(flight)
-    if (!services[flight.id]) {
-      setServices((prev) => ({
-        ...prev,
-        [flight.id]: [
-          { id: 1, category: 'ancillary', name: 'Extra Baggage', price: 30 },
-          { id: 2, category: 'meal', name: 'Chicken Meal', meal_type: 'non-veg', price: 12 },
-          { id: 3, category: 'shopping', name: 'Headphones', price: 25 },
-        ],
-      }))
-    }
-    setShowServiceModal(true)
-  }
+  const handleOpenServices = async (flight: FlightRow) => {
+    setServiceFlight(flight);
+    const token = localStorage.getItem("token");
 
-  const handleAddService = (flightId: number, item: NewServiceItem) => {
-    setServices((prev) => {
-      const list = prev[flightId] || []
-      const nextId = list.length ? Math.max(...list.map((s) => s.id)) + 1 : 1
-      return { ...prev, [flightId]: [...list, { ...(item as any), id: nextId }] }
-    })
-  }
+    if (!services[flight.id]) {
+      try {
+        const response = await fetch(`${backendUrl}/admin/flight-services/flight/${flight.id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Replace with your actual token
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch services: ${response.status}`);
+        }
+
+        const backendData = await response.json();
+
+        const mappedServices = backendData.map((service: { serviceId: any; category: string; name: any; price: any }) => ({
+          id: service.serviceId,
+          category: service.category.toLowerCase(),
+          name: service.name,
+          price: service.price,
+        }));
+
+        setServices((prev) => ({
+          ...prev,
+          [flight.id]: mappedServices,
+        }));
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        // Optionally show a toast or fallback UI
+      }
+    }
+
+    setShowServiceModal(true);
+  };
+
+  const handleAddService = async (flightId: number, item: NewServiceItem) => {
+    const accessToken = localStorage.getItem("token"); 
+    const requestBody = {
+      flightId: flightId,
+      category: item.category,
+      name: item.name,
+      type: "In flight service", 
+      price: parseFloat(item.price.toString()),
+    };
+
+    try {
+      const response = await fetch(`${backendUrl}/admin/flight-services`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add service: ${response.status}`);
+      }
+
+      const createdService = await response.json();
+      console.log("Done")
+
+      setServices((prev) => {
+        const list = prev[flightId] || [];
+        return {
+          ...prev,
+          [flightId]: [...list, {
+            id: createdService.serviceId, // assuming backend returns serviceId
+            category: createdService.category.toLowerCase(),
+            name: createdService.name,
+            price: createdService.price,
+          }],
+        };
+      });
+    } catch (error) {
+      console.error("Error adding service:", error);
+    }
+  };
 
   const handleUpdateService = (flightId: number, updated: FlightServiceItem) => {
+    console.log(updated)
     setServices((prev) => ({
       ...prev,
       [flightId]: (prev[flightId] || []).map((s) => (s.id === updated.id ? updated : s)),
     }))
   }
 
-  const handleDeleteService = (flightId: number, serviceId: number) => {
-    setServices((prev) => ({
-      ...prev,
-      [flightId]: (prev[flightId] || []).filter((s) => s.id !== serviceId),
-    }))
-  }
+  const handleDeleteService = async (flightId: number, serviceId: number) => {
+    const accessToken = localStorage.getItem("token"); 
+    try {
+      const response = await fetch(`${backendUrl}/admin/flight-services/${serviceId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete service: ${response.status}`);
+      }
+
+      setServices((prev) => ({
+        ...prev,
+        [flightId]: (prev[flightId] || []).filter((s) => s.id !== serviceId),
+      }));
+    } catch (error) {
+      console.error("Error deleting service:", error);
+    }
+  };
 
   const handlePassengerChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
