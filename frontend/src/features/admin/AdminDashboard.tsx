@@ -12,12 +12,11 @@ import { FlightRow, NewFlight, NewPassenger, PassengerRow, UserData, PassengerFi
 
 const AdminDashboard: React.FC = () => {
   const [userData, setUserData] = useState<string | null>(null)
+  const [flightId, setFlightId] = useState<number | null>(null)
   const [selectedFlight, setSelectedFlight] = useState<FlightRow | null>(null)
   const [showPassengerModal, setShowPassengerModal] = useState(false)
   const [showNewPassengerModal, setShowNewPassengerModal] = useState(false)
   const [showNewFlightModal, setShowNewFlightModal] = useState(false)
-  const [showEditFlightModal, setShowEditFlightModal] = useState(false)
-  const [flightToEdit, setFlightToEdit] = useState<FlightRow | null>(null)
   const [passengers, setPassengers] = useState<PassengerRow[]>([])
   const [passengerFilters, setPassengerFilters] = useState<PassengerFilters>({ missingDOB: false, missingPassport: false, missingAddress: false })
   const [showPassengerEditModal, setShowPassengerEditModal] = useState(false)
@@ -65,8 +64,7 @@ const AdminDashboard: React.FC = () => {
 
   async function fetchFlights(): Promise<FlightRow[]> {
   const token = localStorage.getItem("token");
-  // console.log(token)
-
+  
   const response = await fetch(`${backendUrl}/admin/flights`, {
     method: 'GET',
     headers: {
@@ -96,7 +94,7 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     fetchFlights()
       .then(mappedFlights => {
-        setAllFlights(mappedFlights); // ✅ Replace console.log with setAllFlights
+        setAllFlights(mappedFlights);
       })
       .catch(error => {
         console.error('Error:', error);
@@ -117,63 +115,81 @@ const AdminDashboard: React.FC = () => {
   const handlePassengerManagement = (flight: FlightRow) => {
     setSelectedFlight(flight)
     setShowPassengerModal(true)
+    setFlightId(flight.id);
   }
 
-  const handleEditFlight = (flight: FlightRow) => {
-    setFlightToEdit(flight)
-    // Prefill form from selected flight (dummy client-side edit)
-    const route = flight.flight_route || ''
-    let departure = ''
-    let destination = ''
-    const byTo = route.split(' to ')
-    if (byTo.length === 2) {
-      departure = byTo[0].trim()
-      destination = byTo[1].trim()
-    } else {
-      const byDash = route.split('-')
-      if (byDash.length === 2) {
-        departure = byDash[0].trim()
-        destination = byDash[1].trim()
-      } else {
-        const byArrow = route.split('->')
-        if (byArrow.length === 2) {
-          departure = byArrow[0].trim()
-          destination = byArrow[1].trim()
+  const handleViewPassengers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`${backendUrl}/admin/passengers/flight/${flightId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Replace with your actual token
         }
-      }
+      });
+
+      const flightData = await response.json();
+
+      const mappedPassengers: PassengerRow[] = flightData.map((passenger: any) => ({
+        id: passenger.passengerId,
+        name: passenger.name,
+        date_of_birth: passenger.dateOfBirth,
+        passport: passenger.passport,
+        meal_preference: passenger.mealPreference.toLowerCase().includes('non') ? 'non-veg' : 'veg',
+        need_wheelchair: passenger.needsWheelchair,
+        travelling_with_infant: passenger.travellingWithInfant,
+        address: passenger.address || '',
+      }));
+
+      setPassengers(mappedPassengers);
+    } catch (error) {
+      console.error('Failed to fetch passenger data:', error);
     }
-    setNewFlight({
-      flight_number: flight.flight_number,
-      flight_route: flight.flight_route,
-      departure,
-      destination,
-      departure_time: (flight.departure_time || '').replace(' ', 'T'),
-      arrival_time: (flight.arrival_time || '').replace(' ', 'T'),
-    })
-    setShowEditFlightModal(true)
-  }
+  };
 
-  const handleDeleteFlight = (flight: FlightRow) => {
-    if (window.confirm(`Are you sure you want to delete flight ${flight.flight_number}?`)) {
-      // Here you would typically make an API call to delete the flight
-      console.log('Deleting flight:', flight.id)
-      // For now, just remove from local state
-      setAllFlights(prev => prev.filter(f => f.id !== flight.id))
-    }
-  }
 
-  const handleViewPassengers = () => {
-    const mockPassengers: PassengerRow[] = [
-      { id: 1, name: 'John Doe', date_of_birth: '1990-05-15', passport: 'A12345678', meal_preference: 'veg', need_wheelchair: false, travelling_with_infant: false, address: '123 Main St' },
-      { id: 2, name: 'Jane Smith', date_of_birth: '', passport: 'B87654321', meal_preference: 'non-veg', need_wheelchair: true, travelling_with_infant: false, address: '' },
-      { id: 3, name: 'Mike Johnson', date_of_birth: '1992-12-10', passport: '', meal_preference: 'veg', need_wheelchair: false, travelling_with_infant: true },
-    ]
-    setPassengers(mockPassengers)
-  }
-
-  const handleNewPassengerSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleNewPassengerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    console.log('Adding new passenger:', newPassenger)
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('No token found in localStorage');
+      return;
+    }
+
+    const requestBody = {
+      flightId: flightId,    // Same here—ensure it's the correct flight
+      name: newPassenger.name,
+      dateOfBirth: newPassenger.date_of_birth,
+      passport: newPassenger.passport,
+      address: newPassenger.address,
+      mealPreference: newPassenger.meal_preference === 'veg' ? 'Vegetarian' : 'Non-Vegetarian',
+      needsWheelchair: newPassenger.need_wheelchair,
+      travellingWithInfant: newPassenger.travelling_with_infant
+    };
+
+    
+    try {
+      const response = await fetch(`${backendUrl}/admin/passengers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+      await response.json();
+    } catch (error) {
+      console.error('Error adding passenger:', error);
+    }
+
     setShowNewPassengerModal(false)
     setNewPassenger({ name: '', date_of_birth: '', passport: '', address: '', meal_preference: 'veg', need_wheelchair: false, travelling_with_infant: false })
   }
@@ -195,27 +211,6 @@ const AdminDashboard: React.FC = () => {
     setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
   }
 
-  const handleEditFlightSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!flightToEdit) return
-    
-    const composedRoute = (newFlight.departure || newFlight.destination) ? `${newFlight.departure || ''} to ${newFlight.destination || ''}`.trim() : newFlight.flight_route
-    const route = composedRoute || ''
-    
-    const updatedFlight: FlightRow = {
-      ...flightToEdit,
-      flight_number: newFlight.flight_number || flightToEdit.flight_number,
-      flight_route: route || flightToEdit.flight_route,
-      departure_time: (newFlight.departure_time || flightToEdit.departure_time).replace('T', ' '),
-      arrival_time: (newFlight.arrival_time || flightToEdit.arrival_time).replace('T', ' '),
-    }
-    console.log('Editing flight (dummy):', updatedFlight)
-    setAllFlights((prev) => prev.map((f) => f.id === flightToEdit.id ? updatedFlight : f))
-    setShowEditFlightModal(false)
-    setFlightToEdit(null)
-    setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
-  }
-
   const filteredPassengers = useMemo(() => {
     return passengers.filter((p) => {
       if (passengerFilters.missingDOB && p.date_of_birth) return false
@@ -230,15 +225,75 @@ const AdminDashboard: React.FC = () => {
     setShowPassengerEditModal(true)
   }
 
-  const handlePassengerRemove = (p: PassengerRow) => {
-    setPassengers((prev) => prev.filter((x) => x.id !== p.id))
-  }
+  const handlePassengerRemove = async (p: PassengerRow) => {
+    setPassengers((prev) => prev.filter((x) => x.id !== p.id));
 
-  const handlePassengerEditSave = (updated: PassengerRow) => {
-    setPassengers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))
-    setShowPassengerEditModal(false)
-    setPassengerToEdit(null)
-  }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found in localStorage');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${backendUrl}/admin/passengers/${p.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete passenger. Status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error deleting passenger:', error);
+    }
+  };
+
+
+  const handlePassengerEditSave = async (updated: PassengerRow) => {
+    setPassengers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+    setShowPassengerEditModal(false);
+    setPassengerToEdit(null);
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found in localStorage');
+      return;
+    }
+
+    const body = {
+      passengerId: updated.id,
+      flightId: flightId,
+      name: updated.name,
+      dateOfBirth: updated.date_of_birth ?? null,
+      passport: updated.passport ?? null,
+      address: updated.address ?? null,
+      mealPreference: updated.meal_preference,
+      needsWheelchair: updated.need_wheelchair,
+      travellingWithInfant: updated.travelling_with_infant,
+    };
+
+    try {
+      const response = await fetch(`${backendUrl}/admin/passengers/${updated.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update passenger. Status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error updating passenger:', error);
+      // Optionally show error UI or revert optimistic update
+    }
+  };
+
 
   const handleOpenServices = (flight: FlightRow) => {
     setServiceFlight(flight)
@@ -333,14 +388,7 @@ const AdminDashboard: React.FC = () => {
               Add New Flight
             </button>
           </div>
-          <FlightTable 
-            flights={flights} 
-            onManagePassengers={handlePassengerManagement} 
-            onManageServices={handleOpenServices}
-            onEditFlight={handleEditFlight}
-            onDeleteFlight={handleDeleteFlight}
-            formatDateTime={formatDateTime} 
-          />
+          <FlightTable flights={flights} onManagePassengers={handlePassengerManagement} onManageServices={handleOpenServices} formatDateTime={formatDateTime} />
         </Card>
       </div>
 
@@ -385,15 +433,6 @@ const AdminDashboard: React.FC = () => {
 
       <Modal isOpen={showNewFlightModal} title="Add New Flight" onClose={() => setShowNewFlightModal(false)} className="max-w-2xl w-full">
         <NewFlightForm form={newFlight} onChange={handleFlightChange} onSubmit={handleNewFlightSubmit} />
-      </Modal>
-
-      <Modal isOpen={showEditFlightModal} title="Edit Flight" onClose={() => setShowEditFlightModal(false)} className="max-w-2xl w-full">
-        <NewFlightForm 
-          form={newFlight}
-          onChange={handleFlightChange} 
-          onSubmit={handleEditFlightSubmit} 
-          submitLabel="Save Changes"
-        />
       </Modal>
 
       <Modal isOpen={showPassengerEditModal} title={`Edit Passenger`} onClose={() => setShowPassengerEditModal(false)} className="max-w-xl w-full">
