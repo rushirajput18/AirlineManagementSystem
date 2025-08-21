@@ -5,9 +5,10 @@ interface NewFlightFormProps {
   form: NewFlight
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  submitLabel?: string
 }
 
-const NewFlightForm: React.FC<NewFlightFormProps> = ({ form, onChange, onSubmit }) => (
+const NewFlightForm: React.FC<NewFlightFormProps> = ({ form, onChange, onSubmit, submitLabel = 'Add Flight' }) => (
   <form onSubmit={onSubmit} className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -32,7 +33,7 @@ const NewFlightForm: React.FC<NewFlightFormProps> = ({ form, onChange, onSubmit 
       </div>
     </div>
     <div className="flex justify-end space-x-3 pt-4">
-      <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add Flight</button>
+      <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">{submitLabel}</button>
     </div>
   </form>
 )

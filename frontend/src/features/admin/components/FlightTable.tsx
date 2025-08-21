@@ -5,10 +5,19 @@ interface FlightTableProps {
   flights: FlightRow[]
   onManagePassengers: (flight: FlightRow) => void
   onManageServices?: (flight: FlightRow) => void
+  onEditFlight?: (flight: FlightRow) => void
+  onDeleteFlight?: (flight: FlightRow) => void
   formatDateTime: (s: string) => string
 }
 
-const FlightTable: React.FC<FlightTableProps> = ({ flights, onManagePassengers, onManageServices, formatDateTime }) => (
+const FlightTable: React.FC<FlightTableProps> = ({ 
+  flights, 
+  onManagePassengers, 
+  onManageServices, 
+  onEditFlight,
+  onDeleteFlight,
+  formatDateTime 
+}) => (
   <div className="overflow-x-auto">
     <table className="min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
@@ -62,6 +71,24 @@ const FlightTable: React.FC<FlightTableProps> = ({ flights, onManagePassengers, 
                 <button onClick={() => onManagePassengers(flight)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors">Manage Passengers</button>
                 {onManageServices && (
                   <button onClick={() => onManageServices(flight)} className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-xs transition-colors">Manage Services</button>
+                )}
+                {onEditFlight && (
+                  <button 
+                    onClick={() => onEditFlight(flight)} 
+                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded text-xs transition-colors"
+                    title="Edit Flight"
+                  >
+                    ✏️
+                  </button>
+                )}
+                {onDeleteFlight && (
+                  <button 
+                    onClick={() => onDeleteFlight(flight)} 
+                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded text-xs transition-colors"
+                    title="Delete Flight"
+                  >
+                    🗑️
+                  </button>
                 )}
               </div>
             </td>

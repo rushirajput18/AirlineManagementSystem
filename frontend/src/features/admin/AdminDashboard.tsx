@@ -16,6 +16,8 @@ const AdminDashboard: React.FC = () => {
   const [showPassengerModal, setShowPassengerModal] = useState(false)
   const [showNewPassengerModal, setShowNewPassengerModal] = useState(false)
   const [showNewFlightModal, setShowNewFlightModal] = useState(false)
+  const [showEditFlightModal, setShowEditFlightModal] = useState(false)
+  const [flightToEdit, setFlightToEdit] = useState<FlightRow | null>(null)
   const [passengers, setPassengers] = useState<PassengerRow[]>([])
   const [passengerFilters, setPassengerFilters] = useState<PassengerFilters>({ missingDOB: false, missingPassport: false, missingAddress: false })
   const [showPassengerEditModal, setShowPassengerEditModal] = useState(false)
@@ -117,6 +119,49 @@ const AdminDashboard: React.FC = () => {
     setShowPassengerModal(true)
   }
 
+  const handleEditFlight = (flight: FlightRow) => {
+    setFlightToEdit(flight)
+    // Prefill form from selected flight (dummy client-side edit)
+    const route = flight.flight_route || ''
+    let departure = ''
+    let destination = ''
+    const byTo = route.split(' to ')
+    if (byTo.length === 2) {
+      departure = byTo[0].trim()
+      destination = byTo[1].trim()
+    } else {
+      const byDash = route.split('-')
+      if (byDash.length === 2) {
+        departure = byDash[0].trim()
+        destination = byDash[1].trim()
+      } else {
+        const byArrow = route.split('->')
+        if (byArrow.length === 2) {
+          departure = byArrow[0].trim()
+          destination = byArrow[1].trim()
+        }
+      }
+    }
+    setNewFlight({
+      flight_number: flight.flight_number,
+      flight_route: flight.flight_route,
+      departure,
+      destination,
+      departure_time: (flight.departure_time || '').replace(' ', 'T'),
+      arrival_time: (flight.arrival_time || '').replace(' ', 'T'),
+    })
+    setShowEditFlightModal(true)
+  }
+
+  const handleDeleteFlight = (flight: FlightRow) => {
+    if (window.confirm(`Are you sure you want to delete flight ${flight.flight_number}?`)) {
+      // Here you would typically make an API call to delete the flight
+      console.log('Deleting flight:', flight.id)
+      // For now, just remove from local state
+      setAllFlights(prev => prev.filter(f => f.id !== flight.id))
+    }
+  }
+
   const handleViewPassengers = () => {
     const mockPassengers: PassengerRow[] = [
       { id: 1, name: 'John Doe', date_of_birth: '1990-05-15', passport: 'A12345678', meal_preference: 'veg', need_wheelchair: false, travelling_with_infant: false, address: '123 Main St' },
@@ -147,6 +192,27 @@ const AdminDashboard: React.FC = () => {
     }
     setAllFlights((prev) => [...prev, toAdd])
     setShowNewFlightModal(false)
+    setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
+  }
+
+  const handleEditFlightSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!flightToEdit) return
+    
+    const composedRoute = (newFlight.departure || newFlight.destination) ? `${newFlight.departure || ''} to ${newFlight.destination || ''}`.trim() : newFlight.flight_route
+    const route = composedRoute || ''
+    
+    const updatedFlight: FlightRow = {
+      ...flightToEdit,
+      flight_number: newFlight.flight_number || flightToEdit.flight_number,
+      flight_route: route || flightToEdit.flight_route,
+      departure_time: (newFlight.departure_time || flightToEdit.departure_time).replace('T', ' '),
+      arrival_time: (newFlight.arrival_time || flightToEdit.arrival_time).replace('T', ' '),
+    }
+    console.log('Editing flight (dummy):', updatedFlight)
+    setAllFlights((prev) => prev.map((f) => f.id === flightToEdit.id ? updatedFlight : f))
+    setShowEditFlightModal(false)
+    setFlightToEdit(null)
     setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
   }
 
@@ -267,7 +333,14 @@ const AdminDashboard: React.FC = () => {
               Add New Flight
             </button>
           </div>
-          <FlightTable flights={flights} onManagePassengers={handlePassengerManagement} onManageServices={handleOpenServices} formatDateTime={formatDateTime} />
+          <FlightTable 
+            flights={flights} 
+            onManagePassengers={handlePassengerManagement} 
+            onManageServices={handleOpenServices}
+            onEditFlight={handleEditFlight}
+            onDeleteFlight={handleDeleteFlight}
+            formatDateTime={formatDateTime} 
+          />
         </Card>
       </div>
 
@@ -312,6 +385,15 @@ const AdminDashboard: React.FC = () => {
 
       <Modal isOpen={showNewFlightModal} title="Add New Flight" onClose={() => setShowNewFlightModal(false)} className="max-w-2xl w-full">
         <NewFlightForm form={newFlight} onChange={handleFlightChange} onSubmit={handleNewFlightSubmit} />
+      </Modal>
+
+      <Modal isOpen={showEditFlightModal} title="Edit Flight" onClose={() => setShowEditFlightModal(false)} className="max-w-2xl w-full">
+        <NewFlightForm 
+          form={newFlight}
+          onChange={handleFlightChange} 
+          onSubmit={handleEditFlightSubmit} 
+          submitLabel="Save Changes"
+        />
       </Modal>
 
       <Modal isOpen={showPassengerEditModal} title={`Edit Passenger`} onClose={() => setShowPassengerEditModal(false)} className="max-w-xl w-full">
