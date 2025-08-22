@@ -156,10 +156,9 @@ const StaffDashboard: React.FC = () => {
       setSeatMap(seatMap);
 
       setShowCheckInModal(true);
-      alert(`Check-in service opened for Flight ${flight.name}. Found ${passengers.length} passengers.`);
     } catch (error) {
       console.error("Error during check-in service:", error);
-      alert('Failed to load passenger data. Please try again.');
+      // Optionally show error UI
     }
   };
 
@@ -176,25 +175,21 @@ const StaffDashboard: React.FC = () => {
     }))
     setInFlightPassengers(base)
     setShowInFlightModal(true)
-    alert(`In-flight service opened for Flight ${flight.name}. Ready to manage passenger services.`);
   }
 
   const handleAssignSeat = (passengerId: number, seatNo: string) => {
     setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, seat_no: seatNo } : p)))
     setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: true, passenger_id: passengerId } : s)))
-    alert(`Seat ${seatNo} has been assigned to passenger ${passengerId} successfully!`)
   }
 
   const handleCheckIn = (passengerId: number) => {
     setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, checked_in: true } : p)))
-    alert(`Passenger ${passengerId} has been checked in successfully!`)
   }
 
   const handleCheckOut = (passengerId: number) => {
     const seatNo = checkInPassengers.find((p) => p.passengerId === passengerId)?.seatNumber
     setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, checked_in: false, seat_no: null } : p)))
     if (seatNo) setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: false, passenger_id: undefined } : s)))
-    alert(`Passenger ${passengerId} has been checked out successfully!`)
   }
 
   const handleUpdatePassengerInFlight = (updated: PassengerInFlightRow) => {
