@@ -113,6 +113,7 @@ export type ServiceCategory = 'ancillary' | 'meals' | 'shopping'
 export interface BaseServiceItem {
   id: number
   category: ServiceCategory
+  serviceId: number | null
 }
 
 export interface AncillaryServiceItem extends BaseServiceItem {

@@ -106,8 +106,10 @@ const FlightServicesModal: React.FC<FlightServicesModalProps> = ({ isOpen, fligh
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {services.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-50">
+            {services.map((s) => {
+              // console.log(s)
+
+              return (<tr key={s.id || s.serviceId} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{s.category}</div>
                 </td>
@@ -152,8 +154,8 @@ const FlightServicesModal: React.FC<FlightServicesModalProps> = ({ isOpen, fligh
                     </div>
                   )}
                 </td>
-              </tr>
-            ))}
+              </tr>)
+})}
           </tbody>
         </table>
       </div>
