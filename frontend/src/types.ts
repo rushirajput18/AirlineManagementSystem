@@ -66,26 +66,13 @@ export interface PassengerRow {
 }
 
 export interface PassengerCheckInRow {
-  // id: number
-  // name: string
-  // date_of_birth?: string
-  // passport?: string
-  // address?: string
-  // seat_no?: string | null
-  // checked_in: boolean
-  // need_wheelchair: boolean
-  // travelling_with_infant: boolean
-
   passengerId: number
+  name: string
   checkedIn: boolean
-  seatNumber: string
+  seatNumber: string | null
   seatClass: string
-//   {
-//     "passengerId": 17,
-//     "seatNumber": null,
-//     "seatClass": "Economy",
-//     "isCheckedIn": false
-// }
+  need_wheelchair?: boolean
+  travelling_with_infant?: boolean
 }
 
 export interface PassengerInFlightRow extends PassengerCheckInRow {

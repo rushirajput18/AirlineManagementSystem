@@ -180,20 +180,89 @@ const StaffDashboard: React.FC = () => {
   }
 
   const handleAssignSeat = (passengerId: number, seatNo: string) => {
-    setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, seat_no: seatNo } : p)))
-    setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: true, passenger_id: passengerId } : s)))
+    console.log(`Assigning seat ${seatNo} to passenger ${passengerId}`)
+    
+    // First, clear any existing seat assignment for this passenger
+    const currentPassenger = checkInPassengers.find(p => p.passengerId === passengerId)
+    if (currentPassenger?.seatNumber) {
+      console.log(`Clearing existing seat ${currentPassenger.seatNumber} for passenger ${passengerId}`)
+      setSeatMap((prev) => prev.map((s) => 
+        s.seat_no === currentPassenger.seatNumber 
+          ? { ...s, occupied: false, passenger_id: undefined } 
+          : s
+      ))
+    }
+
+    // Check if the seat is already assigned to another passenger
+    const seatAlreadyAssigned = checkInPassengers.some(p => 
+      p.passengerId !== passengerId && p.seatNumber === seatNo
+    )
+    
+    if (seatAlreadyAssigned) {
+      console.warn(`Seat ${seatNo} is already assigned to another passenger`)
+      alert(`Seat ${seatNo} is already assigned to another passenger. Please select a different seat.`)
+      return
+    }
+
+    // Update passenger with new seat assignment
+    setCheckInPassengers((prev) => prev.map((p) => 
+      p.passengerId === passengerId 
+        ? { ...p, seatNumber: seatNo } 
+        : p
+    ))
+    
+    // Update seat map to mark seat as occupied
+    setSeatMap((prev) => prev.map((s) => 
+      s.seat_no === seatNo 
+        ? { ...s, occupied: true, passenger_id: passengerId } 
+        : s
+    ))
+    
+    console.log(`Successfully assigned seat ${seatNo} to passenger ${passengerId}`)
     alert(`Seat ${seatNo} has been assigned to passenger ${passengerId} successfully!`)
   }
 
   const handleCheckIn = (passengerId: number) => {
-    setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, checked_in: true } : p)))
+    const passenger = checkInPassengers.find(p => p.passengerId === passengerId)
+    if (!passenger?.seatNumber) {
+      alert('Please assign a seat before checking in the passenger.')
+      return
+    }
+    
+    console.log(`Checking in passenger ${passengerId} with seat ${passenger.seatNumber}`)
+    setCheckInPassengers((prev) => prev.map((p) => 
+      p.passengerId === passengerId 
+        ? { ...p, checkedIn: true } 
+        : p
+    ))
     alert(`Passenger ${passengerId} has been checked in successfully!`)
   }
 
   const handleCheckOut = (passengerId: number) => {
-    const seatNo = checkInPassengers.find((p) => p.passengerId === passengerId)?.seatNumber
-    setCheckInPassengers((prev) => prev.map((p) => (p.passengerId === passengerId ? { ...p, checked_in: false, seat_no: null } : p)))
-    if (seatNo) setSeatMap((prev) => prev.map((s) => (s.seat_no === seatNo ? { ...s, occupied: false, passenger_id: undefined } : s)))
+    const passenger = checkInPassengers.find(p => p.passengerId === passengerId)
+    if (!passenger) {
+      console.error(`Passenger ${passengerId} not found`)
+      return
+    }
+    
+    console.log(`Checking out passenger ${passengerId} from seat ${passenger.seatNumber}`)
+    
+    // Clear seat assignment and check-in status
+    setCheckInPassengers((prev) => prev.map((p) => 
+      p.passengerId === passengerId 
+        ? { ...p, checkedIn: false, seatNumber: null } 
+        : p
+    ))
+    
+    // Clear seat from seat map if passenger had a seat assigned
+    if (passenger.seatNumber) {
+      setSeatMap((prev) => prev.map((s) => 
+        s.seat_no === passenger.seatNumber 
+          ? { ...s, occupied: false, passenger_id: undefined } 
+          : s
+      ))
+    }
+    
     alert(`Passenger ${passengerId} has been checked out successfully!`)
   }
 
