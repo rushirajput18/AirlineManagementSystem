@@ -13,6 +13,7 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
   const shoppingOptions = useMemo(() => services.filter((s) => s.category === 'shopping'), [services])
 
   const [selectedPassenger, setSelectedPassenger] = useState<PassengerInFlightRow | null>(null)
+  const [isAddingService, setIsAddingService] = useState(false)
 
   const calculateTotal = (passenger: PassengerInFlightRow) => {
     let total = 0;
@@ -44,34 +45,18 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
     }
   };
 
+  const handleAddService = (passenger: PassengerInFlightRow) => {
+    setSelectedPassenger(passenger);
+    setIsAddingService(true);
+  };
+
+  const handleEditService = (passenger: PassengerInFlightRow) => {
+    setSelectedPassenger(passenger);
+    setIsAddingService(false);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{passengers.length}</div>
-          <div className="text-sm text-blue-800">Total Passengers</div>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">
-            {passengers.filter(p => p.selected_meal_id).length}
-          </div>
-          <div className="text-sm text-green-800">Meals Ordered</div>
-        </div>
-        <div className="bg-yellow-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">
-            {passengers.reduce((sum, p) => sum + p.selected_ancillary_ids.length, 0)}
-          </div>
-          <div className="text-sm text-yellow-800">Ancillaries</div>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">
-            ${passengers.reduce((sum, p) => sum + parseFloat(calculateTotal(p)), 0).toFixed(2)}
-          </div>
-          <div className="text-sm text-purple-800">Total Revenue</div>
-        </div>
-      </div>
-
       <div className="overflow-x-auto border rounded">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -126,10 +111,16 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 <td className="px-4 py-2 text-sm">
                   <div className="flex space-x-2">
                     <button 
-                      onClick={() => setSelectedPassenger(p)} 
+                      onClick={() => handleAddService(p)} 
+                      className="text-green-600 hover:text-green-800 text-xs"
+                    >
+                      Add Service
+                    </button>
+                    <button 
+                      onClick={() => handleEditService(p)} 
                       className="text-blue-600 hover:text-blue-800 text-xs"
                     >
-                      Edit
+                      Edit Service
                     </button>
                     <button 
                       onClick={() => handleClearServices(p.passengerId)}
@@ -149,7 +140,9 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
       {selectedPassenger && (
         <div className="border rounded p-4 space-y-4">
           <div className="flex justify-between items-center">
-            <h4 className="font-semibold text-gray-900">Update Services - {selectedPassenger.name}</h4>
+            <h4 className="font-semibold text-gray-900">
+              {isAddingService ? 'Add Services' : 'Edit Services'} - {selectedPassenger.name}
+            </h4>
             <div className="flex space-x-2">
               <button 
                 onClick={() => handleClearServices(selectedPassenger.passengerId)}
@@ -350,6 +343,7 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 if (selectedPassenger) {
                   onUpdatePassenger(selectedPassenger); 
                   setSelectedPassenger(null);
+                  setIsAddingService(false);
                 }
               }} 
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
