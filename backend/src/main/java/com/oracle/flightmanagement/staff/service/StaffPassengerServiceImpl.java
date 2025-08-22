@@ -93,6 +93,11 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
             }
 
             dto.setSeatClass("Economy"); // Placeholder
+            dto.setName(p.getName() != null ? p.getName() : null);
+            dto.setDateOfBirth(p.getDateOfBirth() != null ? p.getDateOfBirth() : null);
+            dto.setPassport(p.getPassport() != null ? p.getPassport() : null);
+            dto.setAddress(p.getAddress() != null ? p.getAddress() : null);
+
             return dto;
         }).collect(Collectors.toList());
     }
