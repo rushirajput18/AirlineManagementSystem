@@ -110,7 +110,11 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
             </div>
           </div>
           <div className="flex justify-end">
-            <button onClick={() => { selectedPassenger && onUpdatePassenger(selectedPassenger); setSelectedPassenger(null) }} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+            <button onClick={() => { 
+              selectedPassenger && onUpdatePassenger(selectedPassenger); 
+              setSelectedPassenger(null);
+              alert(`Services for passenger ${selectedPassenger?.passengerId} have been updated successfully!`);
+            }} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
           </div>
         </div>
       )}

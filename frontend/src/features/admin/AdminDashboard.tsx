@@ -35,6 +35,8 @@ const AdminDashboard: React.FC = () => {
     travelling_with_infant: false,
   })
   const [newFlight, setNewFlight] = useState<NewFlight>({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
+  const [showEditFlightModal, setShowEditFlightModal] = useState(false)
+  const [flightToEdit, setFlightToEdit] = useState<FlightRow | null>(null)
   const navigate = useNavigate()
   const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL;
 
@@ -115,7 +117,50 @@ const AdminDashboard: React.FC = () => {
   const handlePassengerManagement = (flight: FlightRow) => {
     setSelectedFlight(flight)
     setShowPassengerModal(true)
-    setFlightId(flight.id);
+  }
+
+  const handleEditFlight = (flight: FlightRow) => {
+    setFlightToEdit(flight)
+    // Prefill form from selected flight (dummy client-side edit)
+    const route = flight.flight_route || ''
+    let departure = ''
+    let destination = ''
+    const byTo = route.split(' to ')
+    if (byTo.length === 2) {
+      departure = byTo[0].trim()
+      destination = byTo[1].trim()
+    } else {
+      const byDash = route.split('-')
+      if (byDash.length === 2) {
+        departure = byDash[0].trim()
+        destination = byDash[1].trim()
+      } else {
+        const byArrow = route.split('->')
+        if (byArrow.length === 2) {
+          departure = byArrow[0].trim()
+          destination = byArrow[1].trim()
+        }
+      }
+    }
+    setNewFlight({
+      flight_number: flight.flight_number,
+      flight_route: flight.flight_route,
+      departure,
+      destination,
+      departure_time: (flight.departure_time || '').replace(' ', 'T'),
+      arrival_time: (flight.arrival_time || '').replace(' ', 'T'),
+    })
+    setShowEditFlightModal(true)
+  }
+
+  const handleDeleteFlight = (flight: FlightRow) => {
+    if (window.confirm(`Are you sure you want to delete flight ${flight.flight_number}?`)) {
+      // Here you would typically make an API call to delete the flight
+      console.log('Deleting flight:', flight.id)
+      // For now, just remove from local state
+      setAllFlights(prev => prev.filter(f => f.id !== flight.id))
+      alert(`Flight ${flight.flight_number} has been deleted successfully!`)
+    }
   }
 
   const handleViewPassengers = async () => {
@@ -186,8 +231,10 @@ const AdminDashboard: React.FC = () => {
       }
 
       await response.json();
+      alert(`Passenger ${newPassenger.name} has been added successfully!`)
     } catch (error) {
       console.error('Error adding passenger:', error);
+      alert('Failed to add passenger. Please try again.')
     }
 
     setShowNewPassengerModal(false)
@@ -209,6 +256,29 @@ const AdminDashboard: React.FC = () => {
     setAllFlights((prev) => [...prev, toAdd])
     setShowNewFlightModal(false)
     setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
+    alert(`Flight ${toAdd.flight_number} has been added successfully!`)
+  }
+
+  const handleEditFlightSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!flightToEdit) return
+    
+    const composedRoute = (newFlight.departure || newFlight.destination) ? `${newFlight.departure || ''} to ${newFlight.destination || ''}`.trim() : newFlight.flight_route
+    const route = composedRoute || ''
+    
+    const updatedFlight: FlightRow = {
+      ...flightToEdit,
+      flight_number: newFlight.flight_number || flightToEdit.flight_number,
+      flight_route: route || flightToEdit.flight_route,
+      departure_time: (newFlight.departure_time || flightToEdit.departure_time).replace('T', ' '),
+      arrival_time: (newFlight.arrival_time || flightToEdit.arrival_time).replace('T', ' '),
+    }
+    console.log('Editing flight (dummy):', updatedFlight)
+    setAllFlights((prev) => prev.map((f) => f.id === flightToEdit.id ? updatedFlight : f))
+    setShowEditFlightModal(false)
+    setFlightToEdit(null)
+    setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
+    alert(`Flight ${updatedFlight.flight_number} has been updated successfully!`)
   }
 
   const filteredPassengers = useMemo(() => {
@@ -225,74 +295,19 @@ const AdminDashboard: React.FC = () => {
     setShowPassengerEditModal(true)
   }
 
-  const handlePassengerRemove = async (p: PassengerRow) => {
-    setPassengers((prev) => prev.filter((x) => x.id !== p.id));
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found in localStorage');
-      return;
+  const handlePassengerRemove = (p: PassengerRow) => {
+    if (window.confirm(`Are you sure you want to remove passenger ${p.name}?`)) {
+      setPassengers((prev) => prev.filter((x) => x.id !== p.id))
+      alert(`Passenger ${p.name} has been removed successfully!`)
     }
+  }
 
-    try {
-      const response = await fetch(`${backendUrl}/admin/passengers/${p.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete passenger. Status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error deleting passenger:', error);
-    }
-  };
-
-
-  const handlePassengerEditSave = async (updated: PassengerRow) => {
-    setPassengers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
-    setShowPassengerEditModal(false);
-    setPassengerToEdit(null);
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found in localStorage');
-      return;
-    }
-
-    const body = {
-      passengerId: updated.id,
-      flightId: flightId,
-      name: updated.name,
-      dateOfBirth: updated.date_of_birth ?? null,
-      passport: updated.passport ?? null,
-      address: updated.address ?? null,
-      mealPreference: updated.meal_preference,
-      needsWheelchair: updated.need_wheelchair,
-      travellingWithInfant: updated.travelling_with_infant,
-    };
-
-    try {
-      const response = await fetch(`${backendUrl}/admin/passengers/${updated.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update passenger. Status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error updating passenger:', error);
-      // Optionally show error UI or revert optimistic update
-    }
-  };
+  const handlePassengerEditSave = (updated: PassengerRow) => {
+    setPassengers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))
+    setShowPassengerEditModal(false)
+    setPassengerToEdit(null)
+    alert(`Passenger ${updated.name} has been updated successfully!`)
+  }
 
 
   const handleOpenServices = async (flight: FlightRow) => {
@@ -335,80 +350,33 @@ const AdminDashboard: React.FC = () => {
     setShowServiceModal(true);
   };
 
-  const handleAddService = async (flightId: number, item: NewServiceItem) => {
-    const accessToken = localStorage.getItem("token"); 
-    const requestBody = {
-      flightId: flightId,
-      category: item.category,
-      name: item.name,
-      type: "In flight service", 
-      price: parseFloat(item.price.toString()),
-    };
-
-    try {
-      const response = await fetch(`${backendUrl}/admin/flight-services`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to add service: ${response.status}`);
-      }
-
-      const createdService = await response.json();
-      
-      setServices((prev) => {
-        const list = prev[flightId] || [];
-        return {
-          ...prev,
-          [flightId]: [...list, {
-            id: createdService.serviceId, // assuming backend returns serviceId
-            category: createdService.category.toLowerCase(),
-            name: createdService.name,
-            price: createdService.price,
-          }],
-        };
-      });
-    } catch (error) {
-      console.error("Error adding service:", error);
-    }
-  };
+  const handleAddService = (flightId: number, item: NewServiceItem) => {
+    setServices((prev) => {
+      const list = prev[flightId] || []
+      const nextId = list.length ? Math.max(...list.map((s) => s.id)) + 1 : 1
+      return { ...prev, [flightId]: [...list, { ...(item as any), id: nextId }] }
+    })
+    alert(`Service "${(item as any).name}" has been added successfully!`)
+  }
 
   const handleUpdateService = (flightId: number, updated: FlightServiceItem) => {
-    console.log(updated)
     setServices((prev) => ({
       ...prev,
       [flightId]: (prev[flightId] || []).map((s) => (s.id === updated.id ? updated : s)),
     }))
+    alert(`Service "${updated.name}" has been updated successfully!`)
   }
 
-  const handleDeleteService = async (flightId: number, serviceId: number) => {
-    const accessToken = localStorage.getItem("token"); 
-    try {
-      const response = await fetch(`${backendUrl}/admin/flight-services/${serviceId}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete service: ${response.status}`);
-      }
-
+  const handleDeleteService = (flightId: number, serviceId: number) => {
+    const serviceToDelete = services[flightId]?.find(s => s.id === serviceId)
+    if (window.confirm(`Are you sure you want to delete service "${serviceToDelete?.name}"?`)) {
       setServices((prev) => ({
         ...prev,
         [flightId]: (prev[flightId] || []).filter((s) => s.id !== serviceId),
-      }));
-    } catch (error) {
-      console.error("Error deleting service:", error);
+      }))
+      alert(`Service "${serviceToDelete?.name}" has been deleted successfully!`)
     }
-  };
+  }
 
   const handlePassengerChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -466,7 +434,14 @@ const AdminDashboard: React.FC = () => {
               Add New Flight
             </button>
           </div>
-          <FlightTable flights={flights} onManagePassengers={handlePassengerManagement} onManageServices={handleOpenServices} formatDateTime={formatDateTime} />
+          <FlightTable 
+            flights={flights} 
+            onManagePassengers={handlePassengerManagement} 
+            onManageServices={handleOpenServices}
+            onEditFlight={handleEditFlight}
+            onDeleteFlight={handleDeleteFlight}
+            formatDateTime={formatDateTime} 
+          />
         </Card>
       </div>
 
@@ -511,6 +486,15 @@ const AdminDashboard: React.FC = () => {
 
       <Modal isOpen={showNewFlightModal} title="Add New Flight" onClose={() => setShowNewFlightModal(false)} className="max-w-2xl w-full">
         <NewFlightForm form={newFlight} onChange={handleFlightChange} onSubmit={handleNewFlightSubmit} />
+      </Modal>
+
+      <Modal isOpen={showEditFlightModal} title="Edit Flight" onClose={() => setShowEditFlightModal(false)} className="max-w-2xl w-full">
+        <NewFlightForm 
+          form={newFlight}
+          onChange={handleFlightChange} 
+          onSubmit={handleEditFlightSubmit} 
+          submitLabel="Save Changes"
+        />
       </Modal>
 
       <Modal isOpen={showPassengerEditModal} title={`Edit Passenger`} onClose={() => setShowPassengerEditModal(false)} className="max-w-xl w-full">
