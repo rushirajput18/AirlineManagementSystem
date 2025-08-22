@@ -120,7 +120,6 @@ const AdminDashboard: React.FC = () => {
 
   const handleEditFlight = (flight: FlightRow) => {
     setFlightToEdit(flight)
-    // Prefill form from selected flight (dummy client-side edit)
     const route = flight.flight_route || ''
     let departure = ''
     let destination = ''
@@ -152,15 +151,31 @@ const AdminDashboard: React.FC = () => {
     setShowEditFlightModal(true)
   }
 
-  const handleDeleteFlight = (flight: FlightRow) => {
-    if (window.confirm(`Are you sure you want to delete flight ${flight.flight_number}?`)) {
-      // Here you would typically make an API call to delete the flight
-      console.log('Deleting flight:', flight.id)
-      // For now, just remove from local state
-      setAllFlights(prev => prev.filter(f => f.id !== flight.id))
-      //alert(`Flight ${flight.flight_number} has been deleted successfully!`)
+  const handleDeleteFlight = async (flight: FlightRow) => {
+    const token = localStorage.getItem("token"); 
+
+    try {
+      const response = await fetch(`${backendUrl}/admin/flights/${flight.id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete flight: ${response.statusText}`);
+      }
+
+      // Update local state only after successful deletion
+      setAllFlights(prev => prev.filter(f => f.id !== flight.id));
+      alert(`Flight ${flight.flight_number} has been deleted successfully!`);
+    } catch (error) {
+      console.error("Error deleting flight:", error);
+      alert("Failed to delete flight. Please try again.");
     }
-  }
+  };
+
 
   const handleViewPassengers = async () => {
     try {
@@ -248,10 +263,9 @@ const AdminDashboard: React.FC = () => {
       : newFlight.flight_route;
 
     const route = composedRoute || '';
-    const nextId = flights.length ? Math.max(...flights.map((f) => f.id)) + 1 : 1;
-
+    
     const toAdd: FlightRow = {
-      id: nextId,
+      id: 0,
       flight_number: newFlight.flight_number,
       flight_route: route,
       departure_time: newFlight.departure_time,
@@ -259,13 +273,14 @@ const AdminDashboard: React.FC = () => {
     };
 
     const requestBody = {
-      flightId: toAdd.id,
       flightNumber: toAdd.flight_number,
-      origin: null, // You can replace this with newFlight.departure if needed
-      destination: null, // Or use newFlight.destination
+      origin: newFlight.departure, // You can replace this with newFlight.departure if needed
+      destination: newFlight.destination, // Or use newFlight.destination
       departureTime: toAdd.departure_time,
       arrivalTime: toAdd.arrival_time,
     };
+
+    console.log(requestBody)
 
     try {
       const token = localStorage.getItem("token");
@@ -302,27 +317,73 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleEditFlightSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!flightToEdit) return
-    
-    const composedRoute = (newFlight.departure || newFlight.destination) ? `${newFlight.departure || ''} to ${newFlight.destination || ''}`.trim() : newFlight.flight_route
-    const route = composedRoute || ''
-    
-    const updatedFlight: FlightRow = {
-      ...flightToEdit,
-      flight_number: newFlight.flight_number || flightToEdit.flight_number,
-      flight_route: route || flightToEdit.flight_route,
-      departure_time: (newFlight.departure_time || flightToEdit.departure_time).replace('T', ' '),
-      arrival_time: (newFlight.arrival_time || flightToEdit.arrival_time).replace('T', ' '),
+  const handleEditFlightSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  if (!flightToEdit) return;
+
+  const composedRoute = (newFlight.departure || newFlight.destination)
+    ? `${newFlight.departure || ''} to ${newFlight.destination || ''}`.trim()
+    : newFlight.flight_route;
+
+  const route = composedRoute || '';
+
+  const updatedFlight: FlightRow = {
+    ...flightToEdit,
+    flight_number: newFlight.flight_number || flightToEdit.flight_number,
+    flight_route: route || flightToEdit.flight_route,
+    departure_time: (newFlight.departure_time || flightToEdit.departure_time).replace('T', ' '),
+    arrival_time: (newFlight.arrival_time || flightToEdit.arrival_time).replace('T', ' '),
+  };
+
+  const requestBody = {
+    flightId: updatedFlight.id,
+    flightNumber: updatedFlight.flight_number,
+    origin: newFlight.departure || null,
+    destination: newFlight.destination || null,
+    departureTime: newFlight.departure_time || flightToEdit.departure_time,
+    arrivalTime: newFlight.arrival_time || flightToEdit.arrival_time,
+  };
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${backendUrl}/admin/flights/${updatedFlight.id}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update flight: ${response.statusText}`);
     }
-    console.log('Editing flight (dummy):', updatedFlight)
-    setAllFlights((prev) => prev.map((f) => f.id === flightToEdit.id ? updatedFlight : f))
-    setShowEditFlightModal(false)
-    setFlightToEdit(null)
-    setNewFlight({ flight_number: '', flight_route: '', departure_time: '', arrival_time: '', departure: '', destination: '' })
-    //alert(`Flight ${updatedFlight.flight_number} has been updated successfully!`)
+
+    const result = await response.json();
+    console.log("Flight updated:", result);
+
+    setAllFlights((prev) =>
+      prev.map((f) => (f.id === flightToEdit.id ? updatedFlight : f))
+    );
+    setShowEditFlightModal(false);
+    setFlightToEdit(null);
+    setNewFlight({
+      flight_number: '',
+      flight_route: '',
+      departure_time: '',
+      arrival_time: '',
+      departure: '',
+      destination: '',
+    });
+
+    alert(`Flight ${updatedFlight.flight_number} has been updated successfully!`);
+  } catch (error) {
+    console.error("Error updating flight:", error);
+    alert("Failed to update flight. Please try again.");
   }
+};
+
 
   const filteredPassengers = useMemo(() => {
     return passengers.filter((p) => {
