@@ -1,4 +1,4 @@
-git import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../../components/common/NavBar'
 import Card from '../../components/common/Card'
