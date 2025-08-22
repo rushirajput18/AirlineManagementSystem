@@ -9,6 +9,7 @@ import NewPassengerForm from './components/NewPassengerForm'
 import PassengerListTable from './components/PassengerListTable'
 import FlightServicesModal from './components/FlightServicesModal'
 import { FlightRow, NewFlight, NewPassenger, PassengerRow, UserData, PassengerFilters, FlightServiceItem, NewServiceItem, Flight } from '../../types'
+import { clearAuthData } from '../../utils/auth'
 
 const AdminDashboard: React.FC = () => {
   const [userData, setUserData] = useState<string | null>(null)
@@ -41,10 +42,9 @@ const AdminDashboard: React.FC = () => {
   const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL;
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
     const userRole = localStorage.getItem('userRole')
     const storedUserData = localStorage.getItem('userData')
-    if (!token || userRole !== 'admin') {
+    if (userRole !== 'admin') {
       navigate('/login')
       return
     }
@@ -52,9 +52,7 @@ const AdminDashboard: React.FC = () => {
   }, [navigate])
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userRole')
-    localStorage.removeItem('userData')
+    clearAuthData()
     navigate('/login')
   }
 

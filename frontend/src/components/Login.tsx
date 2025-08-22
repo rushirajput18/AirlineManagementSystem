@@ -1,26 +1,11 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { isAuthenticated, clearAuthData, getTokenPayload, JWTPayload } from '../utils/auth'
 
 
 type UserRole = 'admin' | 'staff'
 
-type JWTHeader = {
-  alg: string;
-  typ?: string;
-};
-
-type JWTPayload = {
-  sub?: string;
-  iat?: number;
-  exp?: number;
-  [key: string]: any;
-};
-
-type ParsedJWT = {
-  header: JWTHeader;
-  payload: JWTPayload;
-  signature: string;
-};
+// JWT types are now imported from utils/auth
 
 interface Credentials {
   username: string
@@ -51,27 +36,38 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const tokenUrl = import.meta.env.VITE_AUTH_SERVICE_URL;
+
+  // Check if user is already authenticated and redirect accordingly
+  useEffect(() => {
+    if (isAuthenticated()) {
+      const role = localStorage.getItem('userRole')
+      if (role === 'admin') {
+        navigate('/admin-dashboard', { replace: true })
+      } else if (role === 'staff') {
+        navigate('/staff-dashboard', { replace: true })
+      }
+    }
+  }, [navigate])
+
+  // Clear any expired auth data on component mount
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      clearAuthData()
+    }
+  }, [])
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
   }
 
-  const parseJWT = (token: string): ParsedJWT => {
-    const [header, payload, signature] = token.split('.');
-
-    if (!header || !payload || !signature) {
+  const parseJWT = (token: string) => {
+    const payload = getTokenPayload(token);
+    if (!payload) {
       throw new Error("Invalid JWT format");
     }
-
-    const decodedHeader: JWTHeader = JSON.parse(atob(header));
-    const decodedPayload: JWTPayload = JSON.parse(atob(payload));
-
-    return {
-      header: decodedHeader,
-      payload: decodedPayload,
-      signature
-    };
+    return { payload };
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -85,9 +81,16 @@ const Login: React.FC = () => {
         localStorage.setItem('token', response.token)
         localStorage.setItem('userRole', response.role)
         localStorage.setItem('userData', response.userData)
-        if (response.role === 'admin') navigate('/admin-dashboard')
-        else if (response.role === 'staff') navigate('/staff-dashboard')
-        else navigate('/404')
+        
+        // Redirect to the intended page or default dashboard
+        const from = location.state?.from?.pathname
+        if (response.role === 'admin') {
+          navigate(from || '/admin-dashboard', { replace: true })
+        } else if (response.role === 'staff') {
+          navigate(from || '/staff-dashboard', { replace: true })
+        } else {
+          navigate('/404', { replace: true })
+        }
       } else {
         setError('Invalid credentials')
       }

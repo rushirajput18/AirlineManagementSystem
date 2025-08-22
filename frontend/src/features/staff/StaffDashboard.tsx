@@ -1,4 +1,4 @@
-git import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../../components/common/NavBar'
 import Card from '../../components/common/Card'
@@ -7,6 +7,7 @@ import AssignedFlightsTable from './components/AssignedFlightsTable'
 import CheckInPanel from './components/CheckInPanel'
 import InFlightPanel from './components/InFlightPanel'
 import { AssignedFlightRow, UserData, PassengerCheckInRow, SeatCell, PassengerInFlightRow, FlightServiceItem, BackendFlight } from '../../types'
+import { clearAuthData } from '../../utils/auth'
 
 const StaffDashboard: React.FC = () => {
   const [userData, setUserData] = useState<string | null>(null)
@@ -32,10 +33,9 @@ const StaffDashboard: React.FC = () => {
     const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL; 
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
     const userRole = localStorage.getItem('userRole')
     const storedUserData = localStorage.getItem('userData')
-    if (!token || userRole !== 'staff') {
+    if (userRole !== 'staff') {
       navigate('/login')
       return
     }
@@ -43,9 +43,7 @@ const StaffDashboard: React.FC = () => {
   }, [navigate])
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userRole')
-    localStorage.removeItem('userData')
+    clearAuthData()
     navigate('/login')
   }
 
