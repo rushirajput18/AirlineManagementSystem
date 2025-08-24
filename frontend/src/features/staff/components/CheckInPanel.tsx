@@ -99,7 +99,7 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-3">
+      {/* <div className="flex items-center space-x-3">
         <span className="text-sm text-gray-600">Filters:</span>
         <select className="text-sm border rounded px-2 py-1" value={filterWheelchair === null ? '' : filterWheelchair ? 'yes' : 'no'} onChange={(e) => setFilterWheelchair(e.target.value === '' ? null : e.target.value === 'yes')}>
           <option value="">Wheelchair (Any)</option>
@@ -116,7 +116,7 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
           <option value="yes">Checked-In</option>
           <option value="no">Not Checked-In</option>
         </select>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="overflow-x-auto border rounded">

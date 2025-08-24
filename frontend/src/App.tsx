@@ -8,6 +8,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 import TokenExpirationWarning from './components/TokenExpirationWarning'
 import { isAuthenticated } from './utils/auth'
 
+import 'leaflet/dist/leaflet.css';
+
+
 const App: React.FC = () => {
 
   const getRedirect = () => {

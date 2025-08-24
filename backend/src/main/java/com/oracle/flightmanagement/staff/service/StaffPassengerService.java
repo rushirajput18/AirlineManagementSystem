@@ -39,4 +39,10 @@ public interface StaffPassengerService {
     void selectShoppingItems(Long passengerId, ShoppingDTO dto);
 
     void updateShoppingItems(Long passengerId, ShoppingDTO dto);
+
+    void deleteShoppingItems(Long passengerId);
+
+    void deleteMealPreference(Long passengerId);
+
+    void deleteAncillaries(Long passengerId);
 }

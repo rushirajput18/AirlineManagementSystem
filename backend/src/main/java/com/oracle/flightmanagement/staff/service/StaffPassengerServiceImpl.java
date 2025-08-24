@@ -171,6 +171,7 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
     }
 
     // In-Flight
+
     @Override
     public List<PassengerInFlightDTO> getInFlightPassengers(Long flightId) {
         List<Passenger> passengers = passengerRepositoryCustom.findPassengersByFlightId(flightId);
@@ -195,6 +196,8 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
     public void selectAncillaries(Long passengerId, AncillaryDTO dto) {
         // Step 1: Validate input
         if (dto.getSelectedAncillaries() == null || dto.getSelectedAncillaries().isEmpty()) {
+            System.out.println(dto.getSelectedAncillaries());
+            // System.out.println(dto.getSelectedAncillaries().isEmpty());
             System.out.println("⚠️ No ancillary services selected for passengerId=" + passengerId);
             return;
         }
@@ -272,7 +275,8 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
         Optional<StaffPassengerMeal> existingMeal = mealRepo.findByPassengerId(passengerId);
         if (existingMeal.isPresent()) {
             System.out.println("❌ Meal preference already exists for passengerId=" + passengerId);
-            throw new IllegalStateException("Meal preference already exists for passengerId=" + passengerId);
+            // throw new IllegalStateException("Meal preference already exists for passengerId=" + passengerId);
+            return;
         }
 
         // Step 3: Insert new meal preference
@@ -316,6 +320,7 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
     public void selectShoppingItems(Long passengerId, ShoppingDTO dto) {
         // Step 1: Validate input
         if (dto.getShoppingItems() == null || dto.getShoppingItems().isEmpty()) {
+            System.out.println(dto.getShoppingItems());
             System.out.println("⚠️ No shopping items selected for passengerId=" + passengerId);
             return;
         }
@@ -381,4 +386,44 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
         );
     }
 
+    @Override
+    @Transactional
+    public void deleteShoppingItems(Long passengerId) {
+        try {
+            shoppingRepo.deleteByPassengerId(passengerId);
+            shoppingRepo.flush();
+            System.out.println("🧹 Successfully deleted all shopping items for passengerId=" + passengerId);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to delete shopping items for passengerId=" + passengerId + ": " + e.getMessage());
+            // Optionally, rethrow or handle the exception based on your service design
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void deleteMealPreference(Long passengerId) {
+        try {
+            mealRepo.deleteByPassengerId(passengerId);
+            mealRepo.flush();
+            System.out.println("🧹 Successfully deleted meal preference for passengerId=" + passengerId);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to delete meal preference for passengerId=" + passengerId + ": " + e.getMessage());
+            // Optionally rethrow or handle the exception based on your service design
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void deleteAncillaries(Long passengerId) {
+        try {
+            ancillaryRepo.deleteByPassengerId(passengerId);
+            ancillaryRepo.flush();
+            System.out.println("🧹 Successfully deleted ancillary services for passengerId=" + passengerId);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to delete ancillary services for passengerId=" + passengerId + ": " + e.getMessage());
+            // Optionally rethrow or handle the exception based on your service design
+        }
+    }
 }

@@ -76,7 +76,7 @@ export interface PassengerCheckInRow {
 }
 
 export interface PassengerInFlightRow extends PassengerCheckInRow {
-  meal_preference: 'veg' | 'non-veg'
+  mealPreference: 'veg' | 'non-veg'
   selected_ancillary_ids: number[]
   selected_meal_id?: number
   selected_shopping_item_ids: number[]
@@ -108,7 +108,7 @@ export interface NewFlight {
   arrival_time: string
 }
 
-export type ServiceCategory = 'ancillary' | 'meals' | 'shopping'
+export type ServiceCategory = 'ancillary' | 'meal' | 'shopping'
 
 export interface BaseServiceItem {
   id: number
@@ -123,7 +123,7 @@ export interface AncillaryServiceItem extends BaseServiceItem {
 }
 
 export interface MealServiceItem extends BaseServiceItem {
-  category: 'meals'
+  category: 'meal'
   name: string
   meal_type: 'veg' | 'non-veg'
   price: number
@@ -148,4 +148,10 @@ export interface PassengerFilters {
   missingAddress: boolean
 }
 
-
+export type FlightPlan = {
+  flightNumber: string;
+  origin: string;
+  destination: string;
+  departureTime: string;
+  arrivalTime: string;
+};

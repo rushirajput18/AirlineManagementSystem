@@ -1,9 +1,11 @@
 package com.oracle.flightmanagement.staff.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.oracle.flightmanagement.admin.dto.FlightDTO;
+import com.oracle.flightmanagement.admin.dto.FlightServiceDTO;
+import com.oracle.flightmanagement.admin.service.FlightServiceService;
 import com.oracle.flightmanagement.staff.dto.AncillaryDTO;
 import com.oracle.flightmanagement.staff.dto.MealPreferenceDTO;
 import com.oracle.flightmanagement.staff.dto.PassengerCheckInDTO;
@@ -25,6 +29,20 @@ import com.oracle.flightmanagement.staff.service.StaffPassengerService;
 @RestController
 @RequestMapping("/staff")
 public class StaffPassengerController {
+
+    private FlightServiceDTO toDTO(com.oracle.flightmanagement.admin.entity.FlightService service) {
+        FlightServiceDTO dto = new FlightServiceDTO();
+        dto.setServiceId(service.getServiceId());
+        dto.setFlightId(service.getFlight().getFlightId());
+        dto.setCategory(service.getCategory().getCategoryName());
+        dto.setName(service.getServiceName());
+        dto.setType(service.getServiceType());
+        dto.setPrice(service.getPrice());
+        return dto;
+    }
+
+    @Autowired
+    private FlightServiceService flightServiceService;
 
     @Autowired
     private StaffPassengerService staffPassengerService;
@@ -57,6 +75,17 @@ public class StaffPassengerController {
     }
 
     // 🍽️ In-Flight Endpoints
+    @GetMapping("/flight-services/flight/{flightId}")
+    public ResponseEntity<List<FlightServiceDTO>> getAllServicesByFlightId(@PathVariable Long flightId) {
+        List<com.oracle.flightmanagement.admin.entity.FlightService> services = flightServiceService.getAllServicesByFlightId(flightId);
+
+        // 🔍 Add this line to check how many services were fetched
+        System.out.println("Services found: " + services.size());
+
+        List<FlightServiceDTO> dtos = services.stream().map(this::toDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
     @GetMapping("/flights/{flightId}/inflight/passengers")
     public List<PassengerInFlightDTO> getInFlightPassengers(@PathVariable Long flightId) {
         return staffPassengerService.getInFlightPassengers(flightId);
@@ -92,4 +121,23 @@ public class StaffPassengerController {
     public void updateShoppingItems(@PathVariable Long passengerId, @RequestBody ShoppingDTO dto) {
         staffPassengerService.updateShoppingItems(passengerId, dto);
     }
+
+    @DeleteMapping("/passengers/{passengerId}/inflight/shopping")
+    public ResponseEntity<String> deleteShoppingItems(@PathVariable Long passengerId) {
+        staffPassengerService.deleteShoppingItems(passengerId);
+        return ResponseEntity.ok("Shopping items deleted for passenger " + passengerId);
+    }
+
+    @DeleteMapping("/passengers/{passengerId}/inflight/meals/preference")
+    public ResponseEntity<String> deleteMealPreference(@PathVariable Long passengerId) {
+        staffPassengerService.deleteMealPreference(passengerId);
+        return ResponseEntity.ok("Meal preference deleted for passenger " + passengerId);
+    }
+
+    @DeleteMapping("/passengers/{passengerId}/inflight/ancillaries")
+    public ResponseEntity<String> deleteAncillaries(@PathVariable Long passengerId) {
+        staffPassengerService.deleteAncillaries(passengerId);
+        return ResponseEntity.ok("Ancillary services deleted for passenger " + passengerId);
+    }
+
 }

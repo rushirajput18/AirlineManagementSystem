@@ -10,6 +10,7 @@ import PassengerListTable from './components/PassengerListTable'
 import FlightServicesModal from './components/FlightServicesModal'
 import { FlightRow, NewFlight, NewPassenger, PassengerRow, UserData, PassengerFilters, FlightServiceItem, NewServiceItem, Flight } from '../../types'
 import { clearAuthData } from '../../utils/auth'
+import FlightMap from './components/FlightPlan'
 
 const AdminDashboard: React.FC = () => {
   const [userData, setUserData] = useState<string | null>(null)
@@ -40,6 +41,19 @@ const AdminDashboard: React.FC = () => {
   const [flightToEdit, setFlightToEdit] = useState<FlightRow | null>(null)
   const navigate = useNavigate()
   const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL;
+  const flightsMap = [
+  {
+    flightNumber: "AI202",
+    origin: { code: "DEL", name: "Delhi", lat: 28.5562, lng: 77.1000 },
+    destination: { code: "BLR", name: "Bangalore", lat: 13.1986, lng: 77.7066 },
+  },
+  {
+    flightNumber: "6E305",
+    origin: { code: "BOM", name: "Mumbai", lat: 19.0896, lng: 72.8656 },
+    destination: { code: "HYD", name: "Hyderabad", lat: 17.2403, lng: 78.4294 },
+  },
+];
+
 
   useEffect(() => {
     const userRole = localStorage.getItem('userRole')
@@ -793,6 +807,23 @@ const AdminDashboard: React.FC = () => {
           onClose={() => setShowServiceModal(false)}
         />
       </Modal>
+      <div style={{width:'100%', textAlign:"center"}} className="text-xl font-semibold text-gray-900">
+        <h1 style={{ marginBottom:'20px'}}>Flight Plan Visualizer</h1>
+        {/* <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          background: 'white',
+          padding: '8px 12px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          zIndex: 1000,
+        }}>
+          <strong>Flight Map</strong><br />
+          Blue lines = active routes
+        </div> */}
+        <FlightMap flights={flightsMap} />
+      </div>
     </div>
   )
 }
