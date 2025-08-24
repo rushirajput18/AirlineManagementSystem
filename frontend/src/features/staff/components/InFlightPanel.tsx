@@ -8,7 +8,7 @@ interface InFlightPanelProps {
 }
 
 const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onUpdatePassenger }) => {
-  const mealOptions = useMemo(() => services.filter((s) => s.category === 'meals'), [services])
+  const mealOptions = useMemo(() => services.filter((s) => s.category === 'meal'), [services])
   const ancillaryOptions = useMemo(() => services.filter((s) => s.category === 'ancillary'), [services])
   const shoppingOptions = useMemo(() => services.filter((s) => s.category === 'shopping'), [services])
 
@@ -45,10 +45,10 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
     }
   };
 
-  const handleAddService = (passenger: PassengerInFlightRow) => {
-    setSelectedPassenger(passenger);
-    setIsAddingService(true);
-  };
+  // const handleAddService = (passenger: PassengerInFlightRow) => {
+  //   setSelectedPassenger(passenger);
+  //   setIsAddingService(false);
+  // };
 
   const handleEditService = (passenger: PassengerInFlightRow) => {
     setSelectedPassenger(passenger);
@@ -76,11 +76,11 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 <td className="px-4 py-2 text-sm">{p.seatNumber || '-'}</td>
                 <td className="px-4 py-2 text-sm">
                   <span className={`px-2 py-1 rounded-full text-xs ${
-                    p.meal_preference === 'veg' 
+                    !(p.mealPreference.toLowerCase().includes("non")) 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {p.meal_preference}
+                    {p.mealPreference}
                   </span>
                 </td>
                 <td className="px-4 py-2 text-sm">
@@ -110,12 +110,12 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 </td>
                 <td className="px-4 py-2 text-sm">
                   <div className="flex space-x-2">
-                    <button 
+                    {/* <button 
                       onClick={() => handleAddService(p)} 
                       className="text-green-600 hover:text-green-800 text-xs"
                     >
                       Add Service
-                    </button>
+                    </button> */}
                     <button 
                       onClick={() => handleEditService(p)} 
                       className="text-blue-600 hover:text-blue-800 text-xs"
@@ -144,19 +144,19 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
               {isAddingService ? 'Add Services' : 'Edit Services'} - {selectedPassenger.name}
             </h4>
             <div className="flex space-x-2">
-              <button 
+              {/* <button 
                 onClick={() => handleClearServices(selectedPassenger.passengerId)}
                 className="text-sm text-red-600 hover:text-red-800"
                 disabled={!selectedPassenger.selected_meal_id && selectedPassenger.selected_ancillary_ids.length === 0 && selectedPassenger.selected_shopping_item_ids.length === 0}
               >
                 Clear All
-              </button>
+              </button> */}
               <button onClick={() => setSelectedPassenger(null)} className="text-sm text-gray-600 hover:text-gray-800">Close</button>
             </div>
           </div>
 
           {/* Quick Add Popular Services */}
-          <div className="border rounded p-3 bg-gray-50">
+          {/* <div className="border rounded p-3 bg-gray-50">
             <h5 className="font-medium text-gray-900 mb-2">Quick Add Popular Services</h5>
             <div className="grid grid-cols-2 gap-2">
               {mealOptions.slice(0, 2).map((meal) => (
@@ -198,18 +198,18 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Meal Preference</label>
               <select 
-                value={selectedPassenger.meal_preference} 
+                value={selectedPassenger.mealPreference} 
                 onChange={(e) => {
                   const value = e.target.value;
                   setSelectedPassenger({ 
                     ...selectedPassenger, 
-                    meal_preference: value as 'veg' | 'non-veg' 
+                    mealPreference: value as 'veg' | 'non-veg' 
                   });
                 }} 
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
