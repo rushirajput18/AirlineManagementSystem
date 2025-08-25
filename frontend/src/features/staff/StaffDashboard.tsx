@@ -35,9 +35,9 @@ const StaffDashboard: React.FC = () => {
         ...p,
         // meal_preference: p..toLowerCase().includes('veg')
         mealPreference: p.mealPreference,
-        selected_ancillary_ids: [],
-        selected_meal_id: undefined,
-        selected_shopping_item_ids: [],
+        // selected_ancillary_ids: p.selectedAncillaryIds,
+        // selected_meal_id: p.selectedMealId,
+        // selected_shopping_item_ids: p.selectedShoppingItemIds,
       }));
 
       setInFlightPassengers(mappedData)
@@ -151,7 +151,7 @@ const StaffDashboard: React.FC = () => {
       const token = localStorage.getItem("token");
 
       try {
-        const response = await fetch(`${backendUrl}/staff/flights`, {
+        const flightResponse = await fetch(`${backendUrl}/staff/flights`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -159,22 +159,69 @@ const StaffDashboard: React.FC = () => {
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch flights: ${response.status}`);
+        if (!flightResponse.ok) {
+          throw new Error(`Failed to fetch flights: ${flightResponse.status}`);
         }
 
-        const data: BackendFlight[] = await response.json();
+        const flightData = await flightResponse.json();
 
-        const mappedFlights: AssignedFlightRow[] = data.map((flight) => ({
-          id: flight.flightId,
-          name: flight.flightNumber,
-          destination: flight.destination,
-          departure: new Date(flight.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          status: "Scheduled", // default or derived from other data
-          checkInStatus: "Not Started", // default or derived
-          passengers: 0, // placeholder unless provided
-          checkedIn: 0, // placeholder unless provided
-        }));
+        const mappedFlights: AssignedFlightRow[] = await Promise.all(
+          flightData.map(async (flight: { flightId: any; flightNumber: any; destination: any; departureTime: string | number | Date }) => {
+            try {
+              const passengerResponse = await fetch(
+                `${backendUrl}/staff/flights/${flight.flightId}/passengers`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+
+              if (!passengerResponse.ok) {
+                throw new Error(`Failed to fetch passengers for flight ${flight.flightId}`);
+              }
+
+              const passengers = await passengerResponse.json();
+              const totalPassengers = passengers.length;
+              const checkedInCount = passengers.filter((p: { isCheckedIn: any }) => p.isCheckedIn).length;
+
+              return {
+                id: flight.flightId,
+                name: flight.flightNumber,
+                destination: flight.destination,
+                departure: new Date(flight.departureTime).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+                status: "Scheduled",
+                checkInStatus: checkedInCount === 0
+                  ? "Not Started"
+                  : checkedInCount === totalPassengers
+                  ? "Completed"
+                  : "In Progress",
+                passengers: totalPassengers,
+                checkedIn: checkedInCount,
+              };
+            } catch (err) {
+              console.error(`Error fetching passengers for flight ${flight.flightId}:`, err);
+              return {
+                id: flight.flightId,
+                name: flight.flightNumber,
+                destination: flight.destination,
+                departure: new Date(flight.departureTime).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+                status: "Scheduled",
+                checkInStatus: "Unknown",
+                passengers: 0,
+                checkedIn: 0,
+              };
+            }
+          })
+        );
 
         setAllFlights(mappedFlights);
       } catch (error) {
@@ -184,6 +231,7 @@ const StaffDashboard: React.FC = () => {
 
     fetchFlights();
   }, []);
+
 
   const assignedFlights = useMemo(() => {
     if (!searchQuery.trim()) return allFlights;
@@ -254,6 +302,7 @@ const StaffDashboard: React.FC = () => {
     try {
       const passengers = await fetchPassengers(flight.id);
       setCheckInPassengers(passengers);
+      // console.log(passengers)
 
       const seatMap = generateSeatMap(passengers, 36);
       setSeatMap(seatMap);
@@ -316,51 +365,150 @@ const StaffDashboard: React.FC = () => {
     // alert(`Seat ${seatNo} has been assigned to passenger ${passengerId} successfully!`)
   }
 
-  const handleCheckIn = (passengerId: number) => {
-    const passenger = checkInPassengers.find(p => p.passengerId === passengerId)
-    console.log(passenger)
+  const handleCheckIn = async (passengerId: number) => {
+    const passenger = checkInPassengers.find(p => p.passengerId === passengerId);
+
     if (!passenger?.seatNumber) {
-      alert('Please assign a seat before checking in the passenger.')
-      return
+      alert('Please assign a seat before checking in the passenger.');
+      return;
     }
-    
-    console.log(`Checking in passenger ${passengerId} with seat ${passenger.seatNumber}`)
-    setCheckInPassengers((prev) => prev.map((p) => 
-      p.passengerId === passengerId 
-        ? { ...p, checkedIn: true } 
-        : p
-    ))
-    
-  }
 
-  const handleCheckOut = (passengerId: number) => {
-    const passenger = checkInPassengers.find(p => p.passengerId === passengerId)
+    if (!selectedFlight?.id) {
+      alert('No flight selected.');
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    const payload = {
+      passengerId: passenger.passengerId,
+      seatNumber: passenger.seatNumber,
+      flightId: selectedFlight.id,
+    };
+
+    try {
+      // Step 1: Delete any existing seat assignment
+      const deleteResponse = await fetch(
+        `${backendUrl}/staff/delete?passengerId=${passenger.passengerId}&flightId=${selectedFlight.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!deleteResponse.ok) {
+        console.warn(`No existing seat assignment to delete or deletion failed: ${deleteResponse.status}`);
+      }
+
+      // Step 2: Assign the new seat
+      const assignSeatResponse = await fetch(`${backendUrl}/staff/passengers/assign-seat`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!assignSeatResponse.ok) {
+        throw new Error(`Seat assignment failed: ${assignSeatResponse.status}`);
+      }
+
+      // Step 3: Check in the passenger
+      const checkInResponse = await fetch(
+        `${backendUrl}/staff/flights/${selectedFlight.id}/passengers/${passengerId}/checkin`,
+        {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!checkInResponse.ok) {
+        throw new Error(`Check-in failed: ${checkInResponse.status}`);
+      }
+
+      // Step 4: Update local state
+      setCheckInPassengers((prev) =>
+        prev.map((p) =>
+          p.passengerId === passengerId
+            ? { ...p, checkedIn: true }
+            : p
+        )
+      );
+
+      console.log(`Passenger ${passengerId} checked in successfully.`);
+    } catch (error) {
+      console.error("Error during check-in:", error);
+      alert("Failed to check in passenger. Please try again.");
+    }
+  };
+
+
+  const handleCheckOut = async (passengerId: number) => {
+    const passenger = checkInPassengers.find(p => p.passengerId === passengerId);
+
     if (!passenger) {
-      console.error(`Passenger ${passengerId} not found`)
-      return
+      console.error(`Passenger ${passengerId} not found`);
+      return;
     }
-    
-    console.log(`Checking out passenger ${passengerId} from seat ${passenger.seatNumber}`)
-    
-    // Clear seat assignment and check-in status
-    setCheckInPassengers((prev) => prev.map((p) => 
-      p.passengerId === passengerId 
-        ? { ...p, checkedIn: false, seatNumber: null } 
-        : p
-    ))
-    
-    // Clear seat from seat map if passenger had a seat assigned
-    if (passenger.seatNumber) {
-      setSeatMap((prev) => prev.map((s) => 
-        s.seat_no === passenger.seatNumber 
-          ? { ...s, occupied: false, passenger_id: undefined } 
-          : s
-      ))
-    }
-    
-    alert(`Passenger ${passengerId} has been checked out successfully!`)
-  }
 
+    if (!selectedFlight?.id) {
+      alert('No flight selected.');
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(
+        `${backendUrl}/staff/flights/${selectedFlight.id}/passengers/${passengerId}/checkout`,
+        {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Checkout failed: ${response.status}`);
+      }
+
+      console.log(`Checking out passenger ${passengerId} from seat ${passenger.seatNumber}`);
+
+      // Clear seat assignment and check-in status
+      setCheckInPassengers((prev) =>
+        prev.map((p) =>
+          p.passengerId === passengerId
+            ? { ...p, checkedIn: false, seatNumber: null }
+            : p
+        )
+      );
+
+      // Clear seat from seat map if passenger had a seat assigned
+      if (passenger.seatNumber) {
+        setSeatMap((prev) =>
+          prev.map((s) =>
+            s.seat_no === passenger.seatNumber
+              ? { ...s, occupied: false, passenger_id: undefined }
+              : s
+          )
+        );
+      }
+
+      alert(`Passenger ${passengerId} has been checked out successfully!`);
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      alert("Failed to check out passenger. Please try again.");
+    }
+  };
   
 const handleUpdatePassengerInFlight = async (updated: PassengerInFlightRow) => {
   const token = localStorage.getItem('token')
@@ -369,32 +517,33 @@ const handleUpdatePassengerInFlight = async (updated: PassengerInFlightRow) => {
     'Content-Type': 'application/json'
   }
 
-  const { passengerId, selected_ancillary_ids, selected_meal_id, mealPreference, selected_shopping_item_ids } = updated
+  const { passengerId, selectedAncillaryIds, selectedMealId, mealPreference, selectedShoppingItemIds } = updated
+  updated.seatNumber = null;
 
   try {
     // 🧳 Ancillaries
-    if (selected_ancillary_ids && selected_ancillary_ids.length > 0) {
+    if (selectedAncillaryIds && selectedAncillaryIds.length > 0) {
       await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, {
-        selectedAncillaries: selected_ancillary_ids
+        selectedAncillaries: selectedAncillaryIds
       }, { headers })
     }
 
     // 🍽️ Meal Preference
-    if (selected_meal_id !== undefined) {
+    if (selectedMealId !== undefined) {
       await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, {
-        mealPreference: selected_meal_id
+        mealPreference: selectedMealId
       }, { headers })
     }
 
     // 🛍️ Shopping Items
-    if (selected_shopping_item_ids && selected_shopping_item_ids.length > 0) {
+    if (selectedShoppingItemIds && selectedShoppingItemIds.length > 0) {
       await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, {
-        shoppingItems: selected_shopping_item_ids.map(id => String(id))
+        shoppingItems: selectedShoppingItemIds.map((id: any) => String(id))
 
       }, { headers })
     }
     
-    if(selected_meal_id === undefined && (!selected_shopping_item_ids || selected_shopping_item_ids.length == 0) && (!selected_ancillary_ids || selected_ancillary_ids.length == 0)){
+    if(selectedMealId === undefined && (!selectedShoppingItemIds || selectedShoppingItemIds.length == 0) && (!selectedAncillaryIds || selectedAncillaryIds.length == 0)){
       await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, { headers });
 
       // 🍽️ Delete meal preference

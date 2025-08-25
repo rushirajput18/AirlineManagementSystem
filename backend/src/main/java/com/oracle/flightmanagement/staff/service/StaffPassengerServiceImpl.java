@@ -371,12 +371,12 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
         }
 
         // Step 2: Fetch existing item IDs for the passenger
-        List<Long> existingItemIds = shoppingRepo.findItemIdsByPassengerId(passengerId);
-
+        List<StaffPassengerShoppingItem> existingItemIds = shoppingRepo.findItemIdsByPassengerId(passengerId);
+        
         // Step 3: Filter out already existing items
         List<StaffPassengerShoppingItem> newItems = dto.getShoppingItems().stream()
                 .distinct()
-                .filter(itemId -> !existingItemIds.contains(itemId))
+                .filter(itemId -> !existingItemIds.contains(Long.parseLong(itemId)))
                 .map(itemId -> new StaffPassengerShoppingItem(passengerId, Long.parseLong(itemId)))
                 .collect(Collectors.toList());
 
