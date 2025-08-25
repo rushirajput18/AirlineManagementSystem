@@ -807,9 +807,9 @@ const AdminDashboard: React.FC = () => {
           onClose={() => setShowServiceModal(false)}
         />
       </Modal>
-      <div style={{width:'100%', textAlign:"center"}} className="text-xl font-semibold text-gray-900">
+      {/* <div style={{width:'100%', textAlign:"center"}} className="text-xl font-semibold text-gray-900">
         <h1 style={{ marginBottom:'20px'}}>Flight Plan Visualizer</h1>
-        {/* <div style={{
+        <div style={{
           position: 'absolute',
           top: '10px',
           left: '10px',
@@ -821,10 +821,10 @@ const AdminDashboard: React.FC = () => {
         }}>
           <strong>Flight Map</strong><br />
           Blue lines = active routes
-        </div> */}
+        </div>
         <FlightMap flights={flightsMap} />
-      </div>
-    </div>
+      </div> */}
+    </div> 
   )
 }
 

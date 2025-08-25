@@ -32,15 +32,15 @@ const StaffDashboard: React.FC = () => {
       try {
         const rawData = await fetchPassengersInFlight(selectedFlight.id) // or call your API
         const mappedData: PassengerInFlightRow[] = rawData.map((p): PassengerInFlightRow => ({
-        ...p,
-        // meal_preference: p..toLowerCase().includes('veg')
-        mealPreference: p.mealPreference,
-        // selected_ancillary_ids: p.selectedAncillaryIds,
-        // selected_meal_id: p.selectedMealId,
-        // selected_shopping_item_ids: p.selectedShoppingItemIds,
-      }));
+          ...p,
+          // meal_preference: p..toLowerCase().includes('veg')
+          mealPreference: p.mealPreference,
+          // selected_ancillary_ids: p.selectedAncillaryIds,
+          // selected_meal_id: p.selectedMealId,
+          // selected_shopping_item_ids: p.selectedShoppingItemIds,
+        }));
 
-      setInFlightPassengers(mappedData)
+        setInFlightPassengers(mappedData)
 
       } catch (err) {
         console.error('Error loading in-flight passengers:', err)
@@ -57,8 +57,8 @@ const StaffDashboard: React.FC = () => {
       if (!selectedFlight?.id) return
 
       try {
-        const token = localStorage.getItem('token') 
-        
+        const token = localStorage.getItem('token')
+
         const response = await axios.get<FlightServiceItem[]>(`${backendUrl}/staff/flight-services/flight/${selectedFlight?.id}`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -69,44 +69,44 @@ const StaffDashboard: React.FC = () => {
 
         // console.log(rawData)
 
-      const mappedData = rawData.map((item: any) => {
-        // Normalize category
-        let category = ''
-        switch (item.category.toLowerCase()) {
-          case 'meals':
-            category = 'meal'
-            break
-          case 'ancillary':
-            category = 'ancillary'
-            break
-          case 'shopping':
-            category = 'shopping'
-            break
-          default:
-            category = 'other'
-        }
+        const mappedData = rawData.map((item: any) => {
+          // Normalize category
+          let category = ''
+          switch (item.category.toLowerCase()) {
+            case 'meals':
+              category = 'meal'
+              break
+            case 'ancillary':
+              category = 'ancillary'
+              break
+            case 'shopping':
+              category = 'shopping'
+              break
+            default:
+              category = 'other'
+          }
 
-        // Build mapped object
-        const mappedItem: any = {
-          id: item.serviceId,
-          category,
-          name: item.name,
-          price: item.price
-        }
+          // Build mapped object
+          const mappedItem: any = {
+            id: item.serviceId,
+            category,
+            name: item.name,
+            price: item.price
+          }
 
-        // Add meal_type if it's a meal
-        if (category === 'meal') {
-          mappedItem.meal_type = item.name.toLowerCase().includes('veg') ? 'veg' : 'non-veg'
-        }
+          // Add meal_type if it's a meal
+          if (category === 'meal') {
+            mappedItem.meal_type = item.name.toLowerCase().includes('veg') ? 'veg' : 'non-veg'
+          }
 
-        return mappedItem
-      })
+          return mappedItem
+        })
 
-      setFlightServices(mappedData)
-    } catch (error) {
-      console.error('Failed to fetch flight services:', error)
+        setFlightServices(mappedData)
+      } catch (error) {
+        console.error('Failed to fetch flight services:', error)
+      }
     }
-  }
 
     fetchFlightServices()
   }, [selectedFlight])
@@ -115,7 +115,7 @@ const StaffDashboard: React.FC = () => {
 
   const navigate = useNavigate()
 
-    const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL; 
+  const backendUrl = import.meta.env.VITE_FLIGHT_SERVICE_URL;
 
   useEffect(() => {
     const userRole = localStorage.getItem('userRole')
@@ -136,15 +136,15 @@ const StaffDashboard: React.FC = () => {
     setSearchQuery(query)
   }
 
-  const dashboardStats = useMemo(
-    () => [
-      { title: 'Assigned Flights', value: '8', icon: '✈️', color: 'from-blue-500 to-blue-600' },
-      { title: 'Pending Check-ins', value: '23', icon: '📋', color: 'from-red-500 to-red-600' },
-      { title: 'Completed Check-ins', value: '156', icon: '✅', color: 'from-green-500 to-green-600' },
-      { title: 'In-Flight Services', value: '12', icon: '🛎️', color: 'from-yellow-500 to-yellow-600' },
-    ],
-    [],
-  )
+  // const dashboardStats = useMemo(
+  //   () => [
+  //     { title: 'Assigned Flights', value: '8', icon: '✈️', color: 'from-blue-500 to-blue-600' },
+  //     { title: 'Pending Check-ins', value: '23', icon: '📋', color: 'from-red-500 to-red-600' },
+  //     { title: 'Completed Check-ins', value: '156', icon: '✅', color: 'from-green-500 to-green-600' },
+  //     { title: 'In-Flight Services', value: '12', icon: '🛎️', color: 'from-yellow-500 to-yellow-600' },
+  //   ],
+  //   [],
+  // )
 
   useEffect(() => {
     const fetchFlights = async () => {
@@ -199,8 +199,8 @@ const StaffDashboard: React.FC = () => {
                 checkInStatus: checkedInCount === 0
                   ? "Not Started"
                   : checkedInCount === totalPassengers
-                  ? "Completed"
-                  : "In Progress",
+                    ? "Completed"
+                    : "In Progress",
                 passengers: totalPassengers,
                 checkedIn: checkedInCount,
               };
@@ -298,7 +298,7 @@ const StaffDashboard: React.FC = () => {
 
   const handleCheckInService = async (flight: AssignedFlightRow) => {
     setSelectedFlight(flight);
-    
+
     try {
       const passengers = await fetchPassengers(flight.id);
       setCheckInPassengers(passengers);
@@ -324,23 +324,23 @@ const StaffDashboard: React.FC = () => {
 
   const handleAssignSeat = (passengerId: number, seatNo: string) => {
     console.log(`Assigning seat ${seatNo} to passenger ${passengerId}`)
-    
+
     // First, clear any existing seat assignment for this passenger
     const currentPassenger = checkInPassengers.find(p => p.passengerId === passengerId)
     if (currentPassenger?.seatNumber) {
       console.log(`Clearing existing seat ${currentPassenger.seatNumber} for passenger ${passengerId}`)
-      setSeatMap((prev) => prev.map((s) => 
-        s.seat_no === currentPassenger.seatNumber 
-          ? { ...s, occupied: false, passenger_id: undefined } 
+      setSeatMap((prev) => prev.map((s) =>
+        s.seat_no === currentPassenger.seatNumber
+          ? { ...s, occupied: false, passenger_id: undefined }
           : s
       ))
     }
 
     // Check if the seat is already assigned to another passenger
-    const seatAlreadyAssigned = checkInPassengers.some(p => 
+    const seatAlreadyAssigned = checkInPassengers.some(p =>
       p.passengerId !== passengerId && p.seatNumber === seatNo
     )
-    
+
     if (seatAlreadyAssigned) {
       console.warn(`Seat ${seatNo} is already assigned to another passenger`)
       alert(`Seat ${seatNo} is already assigned to another passenger. Please select a different seat.`)
@@ -348,19 +348,19 @@ const StaffDashboard: React.FC = () => {
     }
 
     // Update passenger with new seat assignment
-    setCheckInPassengers((prev) => prev.map((p) => 
-      p.passengerId === passengerId 
-        ? { ...p, seatNumber: seatNo } 
+    setCheckInPassengers((prev) => prev.map((p) =>
+      p.passengerId === passengerId
+        ? { ...p, seatNumber: seatNo }
         : p
     ))
-    
+
     // Update seat map to mark seat as occupied
-    setSeatMap((prev) => prev.map((s) => 
-      s.seat_no === seatNo 
-        ? { ...s, occupied: true, passenger_id: passengerId } 
+    setSeatMap((prev) => prev.map((s) =>
+      s.seat_no === seatNo
+        ? { ...s, occupied: true, passenger_id: passengerId }
         : s
     ))
-    
+
     console.log(`Successfully assigned seat ${seatNo} to passenger ${passengerId}`)
     // alert(`Seat ${seatNo} has been assigned to passenger ${passengerId} successfully!`)
   }
@@ -485,10 +485,11 @@ const StaffDashboard: React.FC = () => {
 
       // Clear seat assignment and check-in status
       setCheckInPassengers((prev) =>
-        prev.map((p) =>
-          p.passengerId === passengerId
-            ? { ...p, isCheckedIn: false, seatNumber: null }
-            : p
+        prev.map(
+          (p) =>
+            p.passengerId === passengerId
+              ? { ...p, isCheckedIn: false, seatNumber: null }
+              : p
         )
       );
 
@@ -509,58 +510,58 @@ const StaffDashboard: React.FC = () => {
       alert("Failed to check out passenger. Please try again.");
     }
   };
-  
-const handleUpdatePassengerInFlight = async (updated: PassengerInFlightRow) => {
-  const token = localStorage.getItem('token')
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
+
+  const handleUpdatePassengerInFlight = async (updated: PassengerInFlightRow) => {
+    const token = localStorage.getItem('token')
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+
+    const { passengerId, selectedAncillaryIds, selectedMealId, mealPreference, selectedShoppingItemIds } = updated
+    updated.seatNumber = null;
+
+    try {
+      // 🧳 Ancillaries
+      if (selectedAncillaryIds && selectedAncillaryIds.length > 0) {
+        await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, {
+          selectedAncillaries: selectedAncillaryIds
+        }, { headers })
+      }
+
+      // 🍽️ Meal Preference
+      if (selectedMealId !== undefined) {
+        await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, {
+          mealPreference: selectedMealId
+        }, { headers })
+      }
+
+      // 🛍️ Shopping Items
+      if (selectedShoppingItemIds && selectedShoppingItemIds.length > 0) {
+        await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, {
+          shoppingItems: selectedShoppingItemIds.map((id: any) => String(id))
+
+        }, { headers })
+      }
+
+      if (selectedMealId === undefined && (!selectedShoppingItemIds || selectedShoppingItemIds.length == 0) && (!selectedAncillaryIds || selectedAncillaryIds.length == 0)) {
+        await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, { headers });
+
+        // 🍽️ Delete meal preference
+        await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, { headers });
+
+        // 🛍️ Delete shopping items
+        await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, { headers });
+      }
+
+      // ✈️ Update local state
+      setInFlightPassengers(prev =>
+        prev.map(p => (p.passengerId === passengerId ? updated : p))
+      )
+    } catch (error) {
+      console.error('Error updating passenger inflight data:', error)
+    }
   }
-
-  const { passengerId, selectedAncillaryIds, selectedMealId, mealPreference, selectedShoppingItemIds } = updated
-  updated.seatNumber = null;
-
-  try {
-    // 🧳 Ancillaries
-    if (selectedAncillaryIds && selectedAncillaryIds.length > 0) {
-      await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, {
-        selectedAncillaries: selectedAncillaryIds
-      }, { headers })
-    }
-
-    // 🍽️ Meal Preference
-    if (selectedMealId !== undefined) {
-      await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, {
-        mealPreference: selectedMealId
-      }, { headers })
-    }
-
-    // 🛍️ Shopping Items
-    if (selectedShoppingItemIds && selectedShoppingItemIds.length > 0) {
-      await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, {
-        shoppingItems: selectedShoppingItemIds.map((id: any) => String(id))
-
-      }, { headers })
-    }
-    
-    if(selectedMealId === undefined && (!selectedShoppingItemIds || selectedShoppingItemIds.length == 0) && (!selectedAncillaryIds || selectedAncillaryIds.length == 0)){
-      await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, { headers });
-
-      // 🍽️ Delete meal preference
-      await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, { headers });
-
-      // 🛍️ Delete shopping items
-      await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, { headers });
-    }
-
-    // ✈️ Update local state
-    setInFlightPassengers(prev =>
-      prev.map(p => (p.passengerId === passengerId ? updated : p))
-    )
-  } catch (error) {
-    console.error('Error updating passenger inflight data:', error)
-  }
-}
 
 
   // Calculate dynamic progress for each flight
@@ -579,9 +580,9 @@ const handleUpdatePassengerInFlight = async (updated: PassengerInFlightRow) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar 
-        title="Airline Management System" 
-        userName={userData} 
+      <NavBar
+        title="Airline Management System"
+        userName={userData}
         onLogout={handleLogout}
         onSearch={handleSearch}
         showSearch={true}
