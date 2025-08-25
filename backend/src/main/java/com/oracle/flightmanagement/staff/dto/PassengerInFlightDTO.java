@@ -1,5 +1,7 @@
 package com.oracle.flightmanagement.staff.dto;
 
+import java.util.List;
+
 public class PassengerInFlightDTO {
 
     private Long passengerId;
@@ -8,6 +10,9 @@ public class PassengerInFlightDTO {
     private String mealPreference;
     private Boolean needsWheelchair;
     private Boolean travellingWithInfant;
+    private List<Long> selectedAncillaryIds;        // New
+    private Long selectedMealId;                    // New
+    private List<String> selectedShoppingItemIds;
 
     public PassengerInFlightDTO() {
     }
@@ -68,5 +73,29 @@ public class PassengerInFlightDTO {
 
     public void setTravellingWithInfant(Boolean travellingWithInfant) {
         this.travellingWithInfant = travellingWithInfant;
+    }
+
+    public List<Long> getSelectedAncillaryIds() {
+        return selectedAncillaryIds;
+    }
+
+    public void setSelectedAncillaryIds(List<Long> selectedAncillaryIds) {
+        this.selectedAncillaryIds = selectedAncillaryIds;
+    }
+
+    public Long getSelectedMealId() {
+        return selectedMealId;
+    }
+
+    public void setSelectedMealId(Long selectedMealId) {
+        this.selectedMealId = selectedMealId;
+    }
+
+    public List<String> getSelectedShoppingItemIds() {
+        return selectedShoppingItemIds;
+    }
+
+    public void setSelectedShoppingItemIds(List<String> selectedShoppingItemIds) {
+        this.selectedShoppingItemIds = selectedShoppingItemIds;
     }
 }

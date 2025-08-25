@@ -16,6 +16,8 @@ public interface StaffPassengerService {
     // Common Endpoint
     List<FlightDTO> getAllFlightsForStaff();
 
+    void assignSeatToPassenger(PassengerSeatDTO dto);
+
     // Check-In Service
     List<PassengerSeatDTO> getPassengersForFlight(Long flightId);
 

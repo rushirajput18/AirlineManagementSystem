@@ -69,6 +69,12 @@ public class StaffPassengerController {
         return staffPassengerService.checkInPassenger(passengerId, flightId);
     }
 
+    @PostMapping("/passengers/assign-seat")
+    public ResponseEntity<String> assignSeat(@RequestBody PassengerSeatDTO dto) {
+        staffPassengerService.assignSeatToPassenger(dto);
+        return ResponseEntity.ok("Seat " + dto.getSeatNumber() + " assigned to passenger " + dto.getPassengerId());
+    }
+
     @PutMapping("/flights/{flightId}/passengers/{passengerId}/checkout")
     public PassengerCheckInDTO checkOutPassenger(@PathVariable Long flightId, @PathVariable Long passengerId) {
         return staffPassengerService.checkOutPassenger(passengerId, flightId);

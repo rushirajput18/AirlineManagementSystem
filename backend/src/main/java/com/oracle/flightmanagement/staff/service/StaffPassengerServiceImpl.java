@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.oracle.flightmanagement.admin.dto.FlightDTO;
+import com.oracle.flightmanagement.admin.entity.Flight;
 import com.oracle.flightmanagement.admin.entity.Passenger;
 import com.oracle.flightmanagement.admin.entity.SeatAssignment;
 import com.oracle.flightmanagement.admin.repository.FlightRepository;
+import com.oracle.flightmanagement.admin.repository.PassengerRepository;
 import com.oracle.flightmanagement.admin.repository.PassengerRepositoryCustom;
 import com.oracle.flightmanagement.admin.repository.SeatAssignmentRepository;
 import com.oracle.flightmanagement.staff.dto.AncillaryDTO;
@@ -44,7 +46,8 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
 
     @Autowired
     private StaffPassengerAncillaryServiceRepository ancillaryRepo;
-
+    @Autowired
+    private PassengerRepository passengerRepository;
     @Autowired
     private StaffPassengerMealRepository mealRepo;
 
@@ -171,14 +174,11 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
     }
 
     // In-Flight
-
     @Override
     public List<PassengerInFlightDTO> getInFlightPassengers(Long flightId) {
         List<Passenger> passengers = passengerRepositoryCustom.findPassengersByFlightId(flightId);
-
         return passengers.stream().map(p -> {
             List<Object[]> results = seatAssignmentRepository.findSeatRaw(p.getPassengerId(), flightId);
-
             PassengerInFlightDTO dto = new PassengerInFlightDTO();
             dto.setPassengerId(p.getPassengerId());
             dto.setName(p.getName());
@@ -186,8 +186,47 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
             dto.setMealPreference(p.getMealPreference());
             dto.setNeedsWheelchair(p.getNeedsWheelchair());
             dto.setTravellingWithInfant(p.getTravellingWithInfant());
+            // :large_green_square: Ancillary services
+            List<Long> ancillaryIds = ancillaryRepo.findServiceIdsByPassengerId(p.getPassengerId());
+            dto.setSelectedAncillaryIds(ancillaryIds);
+            // :large_green_square: Selected meal
+            // :large_green_square: Selected meal
+            mealRepo.findByPassengerId(p.getPassengerId())
+                    .ifPresent(meal -> dto.setSelectedMealId(meal.getServiceId()));
+            // :large_green_square: Shopping items
+            List<String> shoppingItems = shoppingRepo.findByPassengerId(p.getPassengerId())
+                    .stream()
+                    .map(item -> String.valueOf(item.getId())) // or .getItemId() depending on your requirement
+                    .collect(Collectors.toList());
+            dto.setSelectedShoppingItemIds(shoppingItems);
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void assignSeatToPassenger(PassengerSeatDTO dto) {
+        // Step 1: Find the flight
+        Flight flight = flightRepository.findById(dto.getFlightId())
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+        // Step 2: Find the passenger by ID (not list)
+        Passenger passenger = passengerRepository.findById(dto.getPassengerId())
+                .orElseThrow(() -> new RuntimeException("Passenger not found"));
+        // Step 3: Check for existing assignment to avoid duplicates
+        Optional<SeatAssignment> existingAssignment = seatAssignmentRepository.findAll().stream()
+                .filter(sa -> sa.getFlight().getFlightId().equals(dto.getFlightId())
+                && sa.getPassenger().getPassengerId().equals(dto.getPassengerId()))
+                .findFirst();
+        if (existingAssignment.isPresent()) {
+            throw new RuntimeException("Seat already assigned for this passenger on this flight.");
+        }
+        // Step 4: Create and save new assignment
+        SeatAssignment assignment = SeatAssignment.builder()
+                .flight(flight)
+                .passenger(passenger)
+                .seatNo(dto.getSeatNumber())
+                .checkedIn(false)
+                .build();
+        seatAssignmentRepository.save(assignment);
     }
 
     // Ancillaries
@@ -399,7 +438,6 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
         }
     }
 
-
     @Override
     @Transactional
     public void deleteMealPreference(Long passengerId) {
@@ -412,7 +450,6 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
             // Optionally rethrow or handle the exception based on your service design
         }
     }
-
 
     @Override
     @Transactional

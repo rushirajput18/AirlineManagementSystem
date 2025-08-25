@@ -11,6 +11,7 @@ public class PassengerSeatDTO {
     private String name;
     private LocalDate dateOfBirth;
     private String passport;
+    private Long flightId;
     private String address;
 
     public PassengerSeatDTO() {
@@ -90,5 +91,13 @@ public class PassengerSeatDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Long getFlightId() {
+        return flightId;
+    }
+
+    public void setFlightId(Long flightId) {
+        this.flightId = flightId;
     }
 }

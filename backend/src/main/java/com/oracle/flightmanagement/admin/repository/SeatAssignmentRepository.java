@@ -34,4 +34,10 @@ public interface SeatAssignmentRepository extends JpaRepository<SeatAssignment, 
 
     Optional<SeatAssignment> findByPassenger_PassengerIdAndFlight_FlightId(Long passengerId, Long flightId);
 
+    // @Modifying(clearAutomatically=true)
+    // @Transactional
+    // @Query("UPDATE SeatAssignment s SET s.seatNo = :seatNo WHERE s.passenger.id = :passengerId AND s.flight.id = :flightId")
+    // void assignSeatToPassenger(@Param("passengerId") Long passengerId,
+    //         @Param("seatNo") String seatNo,
+    //         @Param("flightId") Long flightId);
 }
