@@ -437,7 +437,7 @@ const StaffDashboard: React.FC = () => {
       setCheckInPassengers((prev) =>
         prev.map((p) =>
           p.passengerId === passengerId
-            ? { ...p, checkedIn: true }
+            ? { ...p, isCheckedIn: true }
             : p
         )
       );
@@ -487,7 +487,7 @@ const StaffDashboard: React.FC = () => {
       setCheckInPassengers((prev) =>
         prev.map((p) =>
           p.passengerId === passengerId
-            ? { ...p, checkedIn: false, seatNumber: null }
+            ? { ...p, isCheckedIn: false, seatNumber: null }
             : p
         )
       );
