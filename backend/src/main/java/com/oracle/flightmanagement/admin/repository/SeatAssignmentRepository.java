@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.oracle.flightmanagement.admin.entity.Flight;
 import com.oracle.flightmanagement.admin.entity.Passenger;
@@ -34,6 +36,12 @@ public interface SeatAssignmentRepository extends JpaRepository<SeatAssignment, 
 
     Optional<SeatAssignment> findByPassenger_PassengerIdAndFlight_FlightId(Long passengerId, Long flightId);
 
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM SeatAssignment s WHERE s.passenger.id = :passengerId AND s.flight.id = :flightId")
+    void deleteByPassengerIdAndFlightId(@Param("passengerId") Long passengerId,
+            @Param("flightId") Long flightId);
+            
     // @Modifying(clearAutomatically=true)
     // @Transactional
     // @Query("UPDATE SeatAssignment s SET s.seatNo = :seatNo WHERE s.passenger.id = :passengerId AND s.flight.id = :flightId")
