@@ -30,7 +30,7 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
     return passengers.filter((p) => {
       if (filterWheelchair !== null && p.need_wheelchair !== filterWheelchair) return false
       if (filterInfant !== null && p.travelling_with_infant !== filterInfant) return false
-      if (filterCheckedIn !== null && p.checkedIn !== filterCheckedIn) return false
+      if (filterCheckedIn !== null && p.isCheckedIn !== filterCheckedIn) return false
       return true
     })
   }, [passengers, filterWheelchair, filterInfant, filterCheckedIn])
@@ -132,7 +132,10 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredPassengers.map((p) => (
+              {filteredPassengers.map((p) => {
+                // console.log(p)
+                
+                return (
                 <tr key={p.passengerId} className="hover:bg-gray-50">
                   <td className="px-4 py-2 text-sm">{p.passengerId}</td>
                   <td className="px-4 py-2 text-sm font-medium">{p.name}</td>
@@ -147,7 +150,7 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
                     )}
                   </td>
                   <td className="px-4 py-2 text-sm">
-                    {p.checkedIn ? (
+                    {p.isCheckedIn ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Checked In
                       </span>
@@ -159,7 +162,7 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
                   </td>
                   <td className="px-4 py-2 text-sm">
                     <div className="flex items-center space-x-2">
-                      {!p.checkedIn ? (
+                      {!p.isCheckedIn ? (
                         <>
                           <select 
                             className="border rounded px-2 py-1 text-sm" 
@@ -194,7 +197,7 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
@@ -207,7 +210,7 @@ const CheckInPanel: React.FC<CheckInPanelProps> = ({ passengers, seats, onAssign
                 {row.map((seat) => {
                   const isAssigned = passengers.some(p => p.seatNumber === seat.seat_no)
                   const assignedPassenger = passengers.find(p => p.seatNumber === seat.seat_no)
-                  const isCheckedIn = assignedPassenger?.checkedIn
+                  const isCheckedIn = assignedPassenger?.isCheckedIn
                   
                   return (
                     <div 

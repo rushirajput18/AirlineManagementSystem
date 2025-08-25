@@ -12,7 +12,7 @@ public interface StaffPassengerShoppingItemRepository extends JpaRepository<Staf
 
     List<StaffPassengerShoppingItem> findByPassengerId(Long passengerId);
 
-    List<Long> findItemIdsByPassengerId(Long passengerId);
+    List<StaffPassengerShoppingItem> findItemIdsByPassengerId(Long passengerId);
 
     void deleteByPassengerId(Long passengerId);
 }

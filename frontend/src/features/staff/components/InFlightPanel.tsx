@@ -17,15 +17,15 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
 
   const calculateTotal = (passenger: PassengerInFlightRow) => {
     let total = 0;
-    if (passenger.selected_meal_id) {
-      const meal = mealOptions.find(m => m.id === passenger.selected_meal_id);
+    if (passenger.selectedMealId) {
+      const meal = mealOptions.find(m => m.id === passenger.selectedMealId);
       if (meal) total += meal.price;
     }
-    passenger.selected_ancillary_ids.forEach(id => {
+    passenger.selectedAncillaryIds.forEach(id => {
       const service = ancillaryOptions.find(s => s.id === id);
       if (service) total += service.price;
     });
-    passenger.selected_shopping_item_ids.forEach(id => {
+    passenger.selectedShoppingItemIds.forEach(id => {
       const service = shoppingOptions.find(s => s.id === id);
       if (service) total += service.price;
     });
@@ -34,12 +34,13 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
 
   const handleClearServices = (passengerId: number) => {
     const passenger = passengers.find(p => p.passengerId === passengerId);
+    console.log(passenger)
     if (passenger) {
       const clearedPassenger = {
         ...passenger,
-        selected_meal_id: undefined,
-        selected_ancillary_ids: [],
-        selected_shopping_item_ids: [],
+        selectedMealId: undefined,
+        selectedAncillaryIds: [],
+        selectedShoppingItemIds: [],
       };
       onUpdatePassenger(clearedPassenger);
     }
@@ -85,22 +86,22 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 </td>
                 <td className="px-4 py-2 text-sm">
                   <div className="space-y-1">
-                    {p.selected_meal_id && (
+                    {p.selectedMealId && (
                       <div className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                        {mealOptions.find((m) => m.id === p.selected_meal_id)?.name}
+                        {mealOptions.find((m) => m.id === p.selectedMealId)?.name}
                       </div>
                     )}
-                    {p.selected_ancillary_ids.length > 0 && (
+                    {p.selectedAncillaryIds.length > 0 && (
                       <div className="text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded">
-                        {p.selected_ancillary_ids.length} ancillary{p.selected_ancillary_ids.length > 1 ? 'ies' : 'y'}
+                        {p.selectedAncillaryIds.length} ancillary{p.selectedAncillaryIds.length > 1 ? 'ies' : 'y'}
                       </div>
                     )}
-                    {p.selected_shopping_item_ids.length > 0 && (
+                    {p.selectedShoppingItemIds.length > 0 && (
                       <div className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
-                        {p.selected_shopping_item_ids.length} item{p.selected_shopping_item_ids.length > 1 ? 's' : ''}
+                        {p.selectedShoppingItemIds.length} item{p.selectedShoppingItemIds.length > 1 ? 's' : ''}
                       </div>
                     )}
-                    {!p.selected_meal_id && p.selected_ancillary_ids.length === 0 && p.selected_shopping_item_ids.length === 0 && (
+                    {!p.selectedMealId && p.selectedAncillaryIds.length === 0 && p.selectedShoppingItemIds.length === 0 && (
                       <div className="text-xs text-gray-500">No services</div>
                     )}
                   </div>
@@ -125,7 +126,7 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                     <button 
                       onClick={() => handleClearServices(p.passengerId)}
                       className="text-red-600 hover:text-red-800 text-xs"
-                      disabled={!p.selected_meal_id && p.selected_ancillary_ids.length === 0 && p.selected_shopping_item_ids.length === 0}
+                      disabled={!p.selectedMealId && p.selectedAncillaryIds.length === 0 && p.selectedShoppingItemIds.length === 0}
                     >
                       Clear
                     </button>
@@ -147,7 +148,7 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
               {/* <button 
                 onClick={() => handleClearServices(selectedPassenger.passengerId)}
                 className="text-sm text-red-600 hover:text-red-800"
-                disabled={!selectedPassenger.selected_meal_id && selectedPassenger.selected_ancillary_ids.length === 0 && selectedPassenger.selected_shopping_item_ids.length === 0}
+                disabled={!selectedPassenger.selectedMealId && selectedPassenger.selectedAncillaryIds.length === 0 && selectedPassenger.selectedShoppingItemIds.length === 0}
               >
                 Clear All
               </button> */}
@@ -164,10 +165,10 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                   key={meal.id}
                   onClick={() => setSelectedPassenger({
                     ...selectedPassenger,
-                    selected_meal_id: meal.id
+                    selectedMealId: meal.id
                   })}
                   className={`text-xs px-2 py-1 rounded ${
-                    selectedPassenger.selected_meal_id === meal.id
+                    selectedPassenger.selectedMealId === meal.id
                       ? 'bg-blue-600 text-white'
                       : 'bg-white border border-gray-300 hover:bg-gray-100'
                   }`}
@@ -179,17 +180,17 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 <button
                   key={service.id}
                   onClick={() => {
-                    const isSelected = selectedPassenger.selected_ancillary_ids.includes(service.id);
+                    const isSelected = selectedPassenger.selectedAncillaryIds.includes(service.id);
                     const newAncillaryIds = isSelected
-                      ? selectedPassenger.selected_ancillary_ids.filter(id => id !== service.id)
-                      : [...selectedPassenger.selected_ancillary_ids, service.id];
+                      ? selectedPassenger.selectedAncillaryIds.filter(id => id !== service.id)
+                      : [...selectedPassenger.selectedAncillaryIds, service.id];
                     setSelectedPassenger({
                       ...selectedPassenger,
-                      selected_ancillary_ids: newAncillaryIds
+                      selectedAncillaryIds: newAncillaryIds
                     });
                   }}
                   className={`text-xs px-2 py-1 rounded ${
-                    selectedPassenger.selected_ancillary_ids.includes(service.id)
+                    selectedPassenger.selectedAncillaryIds.includes(service.id)
                       ? 'bg-yellow-600 text-white'
                       : 'bg-white border border-gray-300 hover:bg-gray-100'
                   }`}
@@ -221,12 +222,12 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Meal</label>
               <select 
-                value={selectedPassenger.selected_meal_id || ''} 
+                value={selectedPassenger.selectedMealId || ''} 
                 onChange={(e) => {
                   const value = e.target.value;
                   setSelectedPassenger({ 
                     ...selectedPassenger, 
-                    selected_meal_id: value ? Number(value) : undefined 
+                    selectedMealId: value ? Number(value) : undefined 
                   });
                 }} 
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -241,15 +242,15 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
               <label className="block text-sm font-medium text-gray-700 mb-1">Ancillaries</label>
               <div className="border rounded p-2 max-h-40 overflow-auto space-y-1">
                 {ancillaryOptions.map((a) => {
-                  const checked = selectedPassenger.selected_ancillary_ids.includes(a.id)
+                  const checked = selectedPassenger.selectedAncillaryIds.includes(a.id)
                   return (
                     <label key={a.id} className="flex items-center justify-between text-sm">
                       <div className="flex items-center space-x-2">
                         <input type="checkbox" checked={checked} onChange={(e) => {
                           const next = e.target.checked
-                            ? [...selectedPassenger.selected_ancillary_ids, a.id]
-                            : selectedPassenger.selected_ancillary_ids.filter((x) => x !== a.id)
-                          setSelectedPassenger({ ...selectedPassenger, selected_ancillary_ids: next })
+                            ? [...selectedPassenger.selectedAncillaryIds, a.id]
+                            : selectedPassenger.selectedAncillaryIds.filter((x) => x !== a.id)
+                          setSelectedPassenger({ ...selectedPassenger, selectedAncillaryIds: next })
                         }} />
                         <span>{a.name}</span>
                       </div>
@@ -264,15 +265,15 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
             <label className="block text-sm font-medium text-gray-700 mb-1">Shopping Items</label>
             <div className="border rounded p-2 max-h-40 overflow-auto grid grid-cols-1 sm:grid-cols-2 gap-2">
               {shoppingOptions.map((s) => {
-                const checked = selectedPassenger.selected_shopping_item_ids.includes(s.id)
+                const checked = selectedPassenger.selectedShoppingItemIds.includes(s.id)
                 return (
                   <label key={s.id} className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" checked={checked} onChange={(e) => {
                         const next = e.target.checked
-                          ? [...selectedPassenger.selected_shopping_item_ids, s.id]
-                          : selectedPassenger.selected_shopping_item_ids.filter((x) => x !== s.id)
-                        setSelectedPassenger({ ...selectedPassenger, selected_shopping_item_ids: next })
+                          ? [...selectedPassenger.selectedShoppingItemIds, s.id]
+                          : selectedPassenger.selectedShoppingItemIds.filter((x) => x !== s.id)
+                        setSelectedPassenger({ ...selectedPassenger, selectedShoppingItemIds: next })
                       }} />
                       <span>{s.name}</span>
                     </div>
@@ -287,19 +288,19 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
           <div className="border-t pt-4">
             <h5 className="font-medium text-gray-900 mb-2">Service Summary</h5>
             <div className="space-y-2 text-sm">
-              {selectedPassenger.selected_meal_id && (
+              {selectedPassenger.selectedMealId && (
                 <div className="flex justify-between">
                   <span>Selected Meal:</span>
                   <span className="font-medium">
-                    {mealOptions.find(m => m.id === selectedPassenger.selected_meal_id)?.name}
+                    {mealOptions.find(m => m.id === selectedPassenger.selectedMealId)?.name}
                   </span>
                 </div>
               )}
-              {selectedPassenger.selected_ancillary_ids.length > 0 && (
+              {selectedPassenger.selectedAncillaryIds.length > 0 && (
                 <div>
                   <span className="font-medium">Ancillaries:</span>
                   <ul className="ml-4 mt-1">
-                    {selectedPassenger.selected_ancillary_ids.map(id => {
+                    {selectedPassenger.selectedAncillaryIds.map(id => {
                       const service = ancillaryOptions.find(s => s.id === id);
                       return service ? (
                         <li key={id} className="flex justify-between">
@@ -311,11 +312,11 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                   </ul>
                 </div>
               )}
-              {selectedPassenger.selected_shopping_item_ids.length > 0 && (
+              {selectedPassenger.selectedShoppingItemIds.length > 0 && (
                 <div>
                   <span className="font-medium">Shopping Items:</span>
                   <ul className="ml-4 mt-1">
-                    {selectedPassenger.selected_shopping_item_ids.map(id => {
+                    {selectedPassenger.selectedShoppingItemIds.map(id => {
                       const service = shoppingOptions.find(s => s.id === id);
                       return service ? (
                         <li key={id} className="flex justify-between">

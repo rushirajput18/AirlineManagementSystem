@@ -68,7 +68,7 @@ export interface PassengerRow {
 export interface PassengerCheckInRow {
   passengerId: number
   name: string
-  checkedIn: boolean
+  isCheckedIn: boolean
   seatNumber: string | null
   seatClass: string
   need_wheelchair?: boolean
@@ -77,9 +77,9 @@ export interface PassengerCheckInRow {
 
 export interface PassengerInFlightRow extends PassengerCheckInRow {
   mealPreference: 'veg' | 'non-veg'
-  selected_ancillary_ids: number[]
-  selected_meal_id?: number
-  selected_shopping_item_ids: number[]
+  selectedAncillaryIds: number[]
+  selectedMealId?: number
+  selectedShoppingItemIds: number[]
 }
 
 export interface SeatCell {

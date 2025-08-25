@@ -21,7 +21,11 @@ const AssignedFlightsTable: React.FC<AssignedFlightsTableProps> = ({ flights, on
         </tr>
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
-        {flights.map((flight) => (
+        {flights.map((flight) => {
+          // console.log(flight)
+          // console.log(flight.passengers)
+
+          return (
           <tr key={flight.id} className="hover:bg-gray-50">
             <td className="px-6 py-4 whitespace-nowrap">
               <div className="text-sm font-medium text-gray-900">{flight.id}</div>
@@ -50,7 +54,7 @@ const AssignedFlightsTable: React.FC<AssignedFlightsTableProps> = ({ flights, on
               </div>
             </td>
           </tr>
-        ))}
+        )})}
       </tbody>
     </table>
   </div>
