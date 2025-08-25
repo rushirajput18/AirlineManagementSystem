@@ -27,6 +27,8 @@ public interface StaffPassengerService {
 
     PassengerCheckInDTO checkOutPassenger(Long passengerId, Long flightId);
 
+    void deletePassengerSeat(Long passengerId, Long flightId);
+
     // In-Flight Service
     List<PassengerInFlightDTO> getInFlightPassengers(Long flightId);
 

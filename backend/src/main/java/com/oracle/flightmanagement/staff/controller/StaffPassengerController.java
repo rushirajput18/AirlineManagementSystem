@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.oracle.flightmanagement.admin.dto.FlightDTO;
@@ -78,6 +79,13 @@ public class StaffPassengerController {
     @PutMapping("/flights/{flightId}/passengers/{passengerId}/checkout")
     public PassengerCheckInDTO checkOutPassenger(@PathVariable Long flightId, @PathVariable Long passengerId) {
         return staffPassengerService.checkOutPassenger(passengerId, flightId);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deletePassengerSeat(@RequestParam Long passengerId,
+            @RequestParam Long flightId) {
+        staffPassengerService.deletePassengerSeat(passengerId, flightId);
+        return ResponseEntity.ok("Seat assignment deleted successfully.");
     }
 
     // 🍽️ In-Flight Endpoints

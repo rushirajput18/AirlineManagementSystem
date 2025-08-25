@@ -204,6 +204,12 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
     }
 
     @Override
+    @Transactional
+    public void deletePassengerSeat(Long passengerId, Long flightId) {
+        seatAssignmentRepository.deleteByPassengerIdAndFlightId(passengerId, flightId);
+    }
+
+    @Override
     public void assignSeatToPassenger(PassengerSeatDTO dto) {
         // Step 1: Find the flight
         Flight flight = flightRepository.findById(dto.getFlightId())
