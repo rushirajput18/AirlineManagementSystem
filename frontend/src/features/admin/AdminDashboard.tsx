@@ -524,9 +524,18 @@ const AdminDashboard: React.FC = () => {
 
   const handleAddService = async (flightId: number, item: NewServiceItem) => {
     const accessToken = localStorage.getItem("token"); 
+    
+    // let cat;
+    // if(item.category.includes("meal")){
+      // cat = item.category === "meal"?"meals":"meal";
+    // }
+    // else{
+    //   cat = item.category;
+    // }
+
     const requestBody = {
       flightId: flightId,
-      category: item.category === "meal"?"meals":"meal",
+      category: item.category === "meal"?"meals":item.category,
       name: item.name,
       type: "In flight service", 
       price: parseFloat(item.price.toString()),
