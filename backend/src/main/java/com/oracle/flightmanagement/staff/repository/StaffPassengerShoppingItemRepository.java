@@ -1,10 +1,12 @@
 package com.oracle.flightmanagement.staff.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.oracle.flightmanagement.admin.dto.FlightDTO;
 import com.oracle.flightmanagement.staff.entity.StaffPassengerShoppingItem;
 
 @Repository
@@ -15,4 +17,6 @@ public interface StaffPassengerShoppingItemRepository extends JpaRepository<Staf
     List<StaffPassengerShoppingItem> findItemIdsByPassengerId(Long passengerId);
 
     void deleteByPassengerId(Long passengerId);
+
+    Collection<FlightDTO> findMealIdsByPassengerId(Long passengerId);
 }

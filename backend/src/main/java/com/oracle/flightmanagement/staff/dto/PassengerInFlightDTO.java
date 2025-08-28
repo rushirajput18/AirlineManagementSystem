@@ -12,7 +12,7 @@ public class PassengerInFlightDTO {
     private Boolean travellingWithInfant;
     private List<Long> selectedAncillaryIds;        // New
     private Long selectedMealId;                    // New
-    private List<String> selectedShoppingItemIds;
+    private List<Long> selectedShoppingItemIds;
 
     public PassengerInFlightDTO() {
     }
@@ -91,11 +91,11 @@ public class PassengerInFlightDTO {
         this.selectedMealId = selectedMealId;
     }
 
-    public List<String> getSelectedShoppingItemIds() {
+    public List<Long> getSelectedShoppingItemIds() {
         return selectedShoppingItemIds;
     }
 
-    public void setSelectedShoppingItemIds(List<String> selectedShoppingItemIds) {
-        this.selectedShoppingItemIds = selectedShoppingItemIds;
+    public void setSelectedShoppingItemIds(List<Long> shoppingItems) {
+        this.selectedShoppingItemIds = shoppingItems;
     }
 }

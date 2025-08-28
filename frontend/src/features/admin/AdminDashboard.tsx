@@ -526,7 +526,7 @@ const AdminDashboard: React.FC = () => {
     const accessToken = localStorage.getItem("token"); 
     const requestBody = {
       flightId: flightId,
-      category: item.category,
+      category: item.category === "meal"?"meals":"meal",
       name: item.name,
       type: "In flight service", 
       price: parseFloat(item.price.toString()),

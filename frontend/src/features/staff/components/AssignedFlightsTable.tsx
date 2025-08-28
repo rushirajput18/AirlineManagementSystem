@@ -22,9 +22,7 @@ const AssignedFlightsTable: React.FC<AssignedFlightsTableProps> = ({ flights, on
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
         {flights.map((flight) => {
-          // console.log(flight)
-          // console.log(flight.passengers)
-
+          
           return (
           <tr key={flight.id} className="hover:bg-gray-50">
             <td className="px-6 py-4 whitespace-nowrap">

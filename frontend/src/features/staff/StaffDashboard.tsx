@@ -11,6 +11,7 @@ import { clearAuthData } from '../../utils/auth'
 import axios from 'axios'
 
 const StaffDashboard: React.FC = () => {
+  const [allFlights, setAllFlights] = useState<AssignedFlightRow[]>([]);
   const [userData, setUserData] = useState<string | null>(null)
   const [selectedFlight, setSelectedFlight] = useState<AssignedFlightRow | null>(null)
   const [showCheckInModal, setShowCheckInModal] = useState(false)
@@ -24,24 +25,21 @@ const StaffDashboard: React.FC = () => {
   useEffect(() => {
     // only fetch when a flight is selected and the In-Flight modal is open
     if (!selectedFlight?.id || !showInFlightModal) {
-      setInFlightPassengers([])   // clear old data
+      setInFlightPassengers([])// clear old data
       return
     }
 
     const loadPassengers = async () => {
       try {
         const rawData = await fetchPassengersInFlight(selectedFlight.id) // or call your API
-        const mappedData: PassengerInFlightRow[] = rawData.map((p): PassengerInFlightRow => ({
-          ...p,
-          // meal_preference: p..toLowerCase().includes('veg')
-          mealPreference: p.mealPreference,
-          // selected_ancillary_ids: p.selectedAncillaryIds,
-          // selected_meal_id: p.selectedMealId,
-          // selected_shopping_item_ids: p.selectedShoppingItemIds,
-        }));
+        const mappedData: PassengerInFlightRow[] = rawData.map((p): PassengerInFlightRow => {
+          return {
+            ...p,
+            mealPreference: p.mealPreference,
+          };
+        });
 
-        setInFlightPassengers(mappedData)
-
+        setInFlightPassengers(mappedData);
       } catch (err) {
         console.error('Error loading in-flight passengers:', err)
         setInFlightPassengers([])
@@ -111,7 +109,6 @@ const StaffDashboard: React.FC = () => {
     fetchFlightServices()
   }, [selectedFlight])
 
-  const [allFlights, setAllFlights] = useState<AssignedFlightRow[]>([]);
 
   const navigate = useNavigate()
 
@@ -120,6 +117,7 @@ const StaffDashboard: React.FC = () => {
   useEffect(() => {
     const userRole = localStorage.getItem('userRole')
     const storedUserData = localStorage.getItem('userData')
+
     if (userRole !== 'staff') {
       navigate('/login')
       return
@@ -129,6 +127,7 @@ const StaffDashboard: React.FC = () => {
 
   const handleLogout = () => {
     clearAuthData()
+    console.log("called inside handleLogout line 132")
     navigate('/login')
   }
 
@@ -136,101 +135,91 @@ const StaffDashboard: React.FC = () => {
     setSearchQuery(query)
   }
 
-  // const dashboardStats = useMemo(
-  //   () => [
-  //     { title: 'Assigned Flights', value: '8', icon: '✈️', color: 'from-blue-500 to-blue-600' },
-  //     { title: 'Pending Check-ins', value: '23', icon: '📋', color: 'from-red-500 to-red-600' },
-  //     { title: 'Completed Check-ins', value: '156', icon: '✅', color: 'from-green-500 to-green-600' },
-  //     { title: 'In-Flight Services', value: '12', icon: '🛎️', color: 'from-yellow-500 to-yellow-600' },
-  //   ],
-  //   [],
-  // )
+  const fetchFlights = async () => {
+    const token = localStorage.getItem("token");
+    
+    try {
+      const flightResponse = await fetch(`${backendUrl}/staff/flights`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!flightResponse.ok) {
+        throw new Error(`Failed to fetch flights: ${flightResponse.status}`);
+      }
+
+      const flightData = await flightResponse.json();
+
+      const mappedFlights: AssignedFlightRow[] = await Promise.all(
+        flightData.map(async (flight: { flightId: any; flightNumber: any; destination: any; departureTime: string | number | Date }) => {
+          try {
+            const passengerResponse = await fetch(
+              `${backendUrl}/staff/flights/${flight.flightId}/passengers`,
+              {
+                method: "GET",
+                headers: {
+                  "Authorization": `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (!passengerResponse.ok) {
+              throw new Error(`Failed to fetch passengers for flight ${flight.flightId}`);
+            }
+
+            const passengers = await passengerResponse.json();
+            const totalPassengers = passengers.length;
+            const checkedInCount = passengers.filter((p: { isCheckedIn: any }) => p.isCheckedIn).length;
+
+            return {
+              id: flight.flightId,
+              name: flight.flightNumber,
+              destination: flight.destination,
+              departure: new Date(flight.departureTime).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              status: "Scheduled",
+              checkInStatus: checkedInCount === 0
+                ? "Not Started"
+                : checkedInCount === totalPassengers
+                  ? "Completed"
+                  : "In Progress",
+              passengers: totalPassengers,
+              checkedIn: checkedInCount,
+            };
+          } catch (err) {
+            console.error(`Error fetching passengers for flight ${flight.flightId}:`, err);
+            return {
+              id: flight.flightId,
+              name: flight.flightNumber,
+              destination: flight.destination,
+              departure: new Date(flight.departureTime).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              status: "Scheduled",
+              checkInStatus: "Unknown",
+              passengers: 0,
+              checkedIn: 0,
+            };
+          }
+        })
+      );
+
+      setAllFlights(mappedFlights);
+    } catch (error) {
+      console.error("Error fetching flights:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchFlights = async () => {
-      const token = localStorage.getItem("token");
-
-      try {
-        const flightResponse = await fetch(`${backendUrl}/staff/flights`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!flightResponse.ok) {
-          throw new Error(`Failed to fetch flights: ${flightResponse.status}`);
-        }
-
-        const flightData = await flightResponse.json();
-
-        const mappedFlights: AssignedFlightRow[] = await Promise.all(
-          flightData.map(async (flight: { flightId: any; flightNumber: any; destination: any; departureTime: string | number | Date }) => {
-            try {
-              const passengerResponse = await fetch(
-                `${backendUrl}/staff/flights/${flight.flightId}/passengers`,
-                {
-                  method: "GET",
-                  headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-
-              if (!passengerResponse.ok) {
-                throw new Error(`Failed to fetch passengers for flight ${flight.flightId}`);
-              }
-
-              const passengers = await passengerResponse.json();
-              const totalPassengers = passengers.length;
-              const checkedInCount = passengers.filter((p: { isCheckedIn: any }) => p.isCheckedIn).length;
-
-              return {
-                id: flight.flightId,
-                name: flight.flightNumber,
-                destination: flight.destination,
-                departure: new Date(flight.departureTime).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }),
-                status: "Scheduled",
-                checkInStatus: checkedInCount === 0
-                  ? "Not Started"
-                  : checkedInCount === totalPassengers
-                    ? "Completed"
-                    : "In Progress",
-                passengers: totalPassengers,
-                checkedIn: checkedInCount,
-              };
-            } catch (err) {
-              console.error(`Error fetching passengers for flight ${flight.flightId}:`, err);
-              return {
-                id: flight.flightId,
-                name: flight.flightNumber,
-                destination: flight.destination,
-                departure: new Date(flight.departureTime).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }),
-                status: "Scheduled",
-                checkInStatus: "Unknown",
-                passengers: 0,
-                checkedIn: 0,
-              };
-            }
-          })
-        );
-
-        setAllFlights(mappedFlights);
-      } catch (error) {
-        console.error("Error fetching flights:", error);
-      }
-    };
-
     fetchFlights();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only on mount
 
 
   const assignedFlights = useMemo(() => {
@@ -442,6 +431,9 @@ const StaffDashboard: React.FC = () => {
         )
       );
 
+      await fetchFlights();
+
+
       console.log(`Passenger ${passengerId} checked in successfully.`);
     } catch (error) {
       console.error("Error during check-in:", error);
@@ -481,6 +473,8 @@ const StaffDashboard: React.FC = () => {
         throw new Error(`Checkout failed: ${response.status}`);
       }
 
+      await fetchFlights();
+
       console.log(`Checking out passenger ${passengerId} from seat ${passenger.seatNumber}`);
 
       // Clear seat assignment and check-in status
@@ -518,12 +512,15 @@ const StaffDashboard: React.FC = () => {
       'Content-Type': 'application/json'
     }
 
-    const { passengerId, selectedAncillaryIds, selectedMealId, mealPreference, selectedShoppingItemIds } = updated
-    updated.seatNumber = null;
-
+    const { passengerId, selectedAncillaryIds, selectedMealId, selectedShoppingItemIds } = updated
+    // console.log(typeof(selectedMealId))
+    // console.log(selectedMealId)
     try {
+
       // 🧳 Ancillaries
       if (selectedAncillaryIds && selectedAncillaryIds.length > 0) {
+        await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, { headers });
+
         await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, {
           selectedAncillaries: selectedAncillaryIds
         }, { headers })
@@ -531,6 +528,8 @@ const StaffDashboard: React.FC = () => {
 
       // 🍽️ Meal Preference
       if (selectedMealId !== undefined) {
+        await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, { headers });
+
         await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, {
           mealPreference: selectedMealId
         }, { headers })
@@ -538,19 +537,23 @@ const StaffDashboard: React.FC = () => {
 
       // 🛍️ Shopping Items
       if (selectedShoppingItemIds && selectedShoppingItemIds.length > 0) {
+        await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, { headers });
+
         await axios.post(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, {
           shoppingItems: selectedShoppingItemIds.map((id: any) => String(id))
-
         }, { headers })
       }
 
-      if (selectedMealId === undefined && (!selectedShoppingItemIds || selectedShoppingItemIds.length == 0) && (!selectedAncillaryIds || selectedAncillaryIds.length == 0)) {
+      if ((!selectedAncillaryIds || selectedAncillaryIds.length == 0)) {
         await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/ancillaries`, { headers });
+      }
 
+      if (selectedMealId === undefined) {
         // 🍽️ Delete meal preference
         await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/meals/preference`, { headers });
+      }
 
-        // 🛍️ Delete shopping items
+      if ((!selectedShoppingItemIds || selectedShoppingItemIds.length == 0)) {
         await axios.delete(`${backendUrl}/staff/passengers/${passengerId}/inflight/shopping`, { headers });
       }
 
@@ -561,13 +564,6 @@ const StaffDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error updating passenger inflight data:', error)
     }
-  }
-
-
-  // Calculate dynamic progress for each flight
-  const getFlightProgress = (flight: AssignedFlightRow) => {
-    if (flight.passengers === 0) return 0
-    return Math.round((flight.checkedIn / flight.passengers) * 100)
   }
 
   if (!userData) {

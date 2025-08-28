@@ -34,7 +34,7 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
 
   const handleClearServices = (passengerId: number) => {
     const passenger = passengers.find(p => p.passengerId === passengerId);
-    console.log(passenger)
+    // console.log(passenger)
     if (passenger) {
       const clearedPassenger = {
         ...passenger,
@@ -46,15 +46,13 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
     }
   };
 
-  // const handleAddService = (passenger: PassengerInFlightRow) => {
-  //   setSelectedPassenger(passenger);
-  //   setIsAddingService(false);
-  // };
-
   const handleEditService = (passenger: PassengerInFlightRow) => {
+    // handleClearServices(passenger.passengerId)
     setSelectedPassenger(passenger);
     setIsAddingService(false);
   };
+
+  // console.log(selectedPassenger)
 
   return (
     <div className="space-y-6">
@@ -111,12 +109,6 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
                 </td>
                 <td className="px-4 py-2 text-sm">
                   <div className="flex space-x-2">
-                    {/* <button 
-                      onClick={() => handleAddService(p)} 
-                      className="text-green-600 hover:text-green-800 text-xs"
-                    >
-                      Add Service
-                    </button> */}
                     <button 
                       onClick={() => handleEditService(p)} 
                       className="text-blue-600 hover:text-blue-800 text-xs"
@@ -145,62 +137,9 @@ const InFlightPanel: React.FC<InFlightPanelProps> = ({ passengers, services, onU
               {isAddingService ? 'Add Services' : 'Edit Services'} - {selectedPassenger.name}
             </h4>
             <div className="flex space-x-2">
-              {/* <button 
-                onClick={() => handleClearServices(selectedPassenger.passengerId)}
-                className="text-sm text-red-600 hover:text-red-800"
-                disabled={!selectedPassenger.selectedMealId && selectedPassenger.selectedAncillaryIds.length === 0 && selectedPassenger.selectedShoppingItemIds.length === 0}
-              >
-                Clear All
-              </button> */}
               <button onClick={() => setSelectedPassenger(null)} className="text-sm text-gray-600 hover:text-gray-800">Close</button>
             </div>
           </div>
-
-          {/* Quick Add Popular Services */}
-          {/* <div className="border rounded p-3 bg-gray-50">
-            <h5 className="font-medium text-gray-900 mb-2">Quick Add Popular Services</h5>
-            <div className="grid grid-cols-2 gap-2">
-              {mealOptions.slice(0, 2).map((meal) => (
-                <button
-                  key={meal.id}
-                  onClick={() => setSelectedPassenger({
-                    ...selectedPassenger,
-                    selectedMealId: meal.id
-                  })}
-                  className={`text-xs px-2 py-1 rounded ${
-                    selectedPassenger.selectedMealId === meal.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white border border-gray-300 hover:bg-gray-100'
-                  }`}
-                >
-                  {meal.name} (${meal.price})
-                </button>
-              ))}
-              {ancillaryOptions.slice(0, 2).map((service) => (
-                <button
-                  key={service.id}
-                  onClick={() => {
-                    const isSelected = selectedPassenger.selectedAncillaryIds.includes(service.id);
-                    const newAncillaryIds = isSelected
-                      ? selectedPassenger.selectedAncillaryIds.filter(id => id !== service.id)
-                      : [...selectedPassenger.selectedAncillaryIds, service.id];
-                    setSelectedPassenger({
-                      ...selectedPassenger,
-                      selectedAncillaryIds: newAncillaryIds
-                    });
-                  }}
-                  className={`text-xs px-2 py-1 rounded ${
-                    selectedPassenger.selectedAncillaryIds.includes(service.id)
-                      ? 'bg-yellow-600 text-white'
-                      : 'bg-white border border-gray-300 hover:bg-gray-100'
-                  }`}
-                >
-                  {service.name} (${service.price})
-                </button>
-              ))}
-            </div>
-          </div> */}
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Meal Preference</label>

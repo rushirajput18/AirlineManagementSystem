@@ -67,7 +67,7 @@ const FlightServicesModal: React.FC<FlightServicesModalProps> = ({ isOpen, fligh
             <select required value={category} onChange={(e) => setCategory(e.target.value as ServiceCategory | '')} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="" disabled>Select category</option>
               <option value="ancillary">Ancillary</option>
-              <option value="meals">Meal</option>
+              <option value="meal">Meal</option>
               <option value="shopping">Shopping</option>
             </select>
           </div>

@@ -194,9 +194,9 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
             mealRepo.findByPassengerId(p.getPassengerId())
                     .ifPresent(meal -> dto.setSelectedMealId(meal.getServiceId()));
             // :large_green_square: Shopping items
-            List<String> shoppingItems = shoppingRepo.findByPassengerId(p.getPassengerId())
+            List<Long> shoppingItems = shoppingRepo.findByPassengerId(p.getPassengerId())
                     .stream()
-                    .map(item -> String.valueOf(item.getId())) // or .getItemId() depending on your requirement
+                    .map(item -> item.getServiceId()) // or .getItemId() depending on your requirement
                     .collect(Collectors.toList());
             dto.setSelectedShoppingItemIds(shoppingItems);
             return dto;
@@ -366,7 +366,7 @@ public class StaffPassengerServiceImpl implements StaffPassengerService {
         // Step 1: Validate input
         if (dto.getShoppingItems() == null || dto.getShoppingItems().isEmpty()) {
             System.out.println(dto.getShoppingItems());
-            System.out.println("⚠️ No shopping items selected for passengerId=" + passengerId);
+            System.out.println("⚠️ No shopping items selected for passengerId =" + passengerId);
             return;
         }
 
